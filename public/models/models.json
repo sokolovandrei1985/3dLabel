@@ -1,0 +1,24 @@
+{
+  "models": [
+    {
+      "name": "bottle_glass_2",
+      "path": "/models/bottle_glass_2.glb",
+      "material": "glass"
+    },
+    {
+      "name": "water_2",
+      "path": "/models/water_2.glb",
+      "material": "basic_water"
+    },
+    {
+      "name": "cap_2",
+      "path": "/models/cap_2.glb",
+      "material": "water"
+    },
+    {
+      "name": "label2",
+      "path": "/models/label_uv_2.glb",
+      "material": "label"
+    }
+  ]
+}
