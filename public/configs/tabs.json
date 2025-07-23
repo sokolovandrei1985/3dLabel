@@ -1,0 +1,10 @@
+{
+  "left": [
+    { "key": "layers", "label": "Слои" },
+    { "key": "2d", "label": "Редактор" }
+  ],
+  "right": [
+    { "key": "settings", "label": "Категории" },
+    { "key": "3d", "label": "Настройки 3D" }
+  ]
+}
