@@ -5,7 +5,6 @@ import type { Canvas } from 'fabric'
 import { saveHighResImage } from '@/services/useImageExport'
 import type { Ref } from 'vue'
 import { useGlobalConfigStore } from '@/stores/globalConfig'
-import * as THREE from 'three'     
 
 const VIEWS = ['front', 'back', 'right', 'left', 'top'] as const
 type View = typeof VIEWS[number]
@@ -22,72 +21,19 @@ export function useScreenshooter(params: {
   }
 
   // Снимает скриншот с renderer.domElement, возвращает base64 строку
-async function captureScreenshot(minSidePx = 1000): Promise<string> {
-  return new Promise((resolve, reject) => {
-    // Сохраняем текущий размер
-    const originalSize = new THREE.Vector2()
-    renderer.getSize(originalSize)
-    const aspect = originalSize.x / originalSize.y
-
-    let width, height
-    if (aspect >= 1) {
-      width = minSidePx
-      height = Math.round(minSidePx / aspect)
-    } else {
-      height = minSidePx
-      width = Math.round(minSidePx * aspect)
-    }
-
-    // Сохраняем старые параметры камеры
-    const oldAspect = activeCamera instanceof THREE.PerspectiveCamera ? activeCamera.aspect : 1
-    const oldLeft = activeCamera instanceof THREE.OrthographicCamera ? activeCamera.left : 0
-    const oldRight = activeCamera instanceof THREE.OrthographicCamera ? activeCamera.right : 0
-    const oldTop = activeCamera instanceof THREE.OrthographicCamera ? activeCamera.top : 0
-    const oldBottom = activeCamera instanceof THREE.OrthographicCamera ? activeCamera.bottom : 0
-
-    // Размер и настройки
-    renderer.setSize(width, height)
-
-    if (activeCamera instanceof THREE.PerspectiveCamera) {
-      activeCamera.aspect = width / height
-      activeCamera.updateProjectionMatrix()
-    } else if (activeCamera instanceof THREE.OrthographicCamera) {
-      // подстройте значения left/right/top/bottom согласно новой размерности (пропорции)
-      const frustumSize = 5 // используйте свой параметр, который актуален у вас
-      const aspect = width / height
-      activeCamera.left = -frustumSize * aspect / 2
-      activeCamera.right = frustumSize * aspect / 2
-      activeCamera.top = frustumSize / 2
-      activeCamera.bottom = -frustumSize / 2
-      activeCamera.updateProjectionMatrix()
-    }
-
-    // Обновляем fitModelToView или controls если нужно
-
-    renderer.render(scene, activeCamera)
-
-    renderer.domElement.toBlob(blob => {
-      if (!blob) {
-        reject(new Error('Failed to create blob for screenshot'))
-        return
-      }
-      // восстанавливаем исходный размер
-      renderer.setSize(originalSize.x, originalSize.y)
-      if (activeCamera instanceof THREE.PerspectiveCamera) {
-        activeCamera.aspect = oldAspect
-      } else if (activeCamera instanceof THREE.OrthographicCamera) {
-        activeCamera.left = oldLeft
-        activeCamera.right = oldRight
-        activeCamera.top = oldTop
-        activeCamera.bottom = oldBottom
-      }
-      if ('updateProjectionMatrix' in activeCamera && typeof activeCamera.updateProjectionMatrix === 'function') {
-        activeCamera.updateProjectionMatrix()
-       }
-      resolve(URL.createObjectURL(blob))
-    }, 'image/png')
-  })
-}
+  async function captureScreenshot(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      renderer.domElement.toBlob(blob => {
+        if (!blob) {
+          reject(new Error('Failed to get blob from Three.js canvas'))
+          return
+        }
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.readAsDataURL(blob)
+      }, 'image/png')
+    })
+  }
 
   // Делает скриншоты по всем видам для указанной камеры ('perspective' или 'ortho')
   async function makeShotsForCamera(mode: 'perspective' | 'ortho'): Promise<Record<View, string>> {
@@ -104,7 +50,7 @@ async function captureScreenshot(minSidePx = 1000): Promise<string> {
 
     for (const view of VIEWS) {
       setModelRotation(view)
-      
+      // fitModelToView()
       await delay(150)
 
       renderer.render(scene, activeCamera)
