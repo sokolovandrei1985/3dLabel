@@ -88,66 +88,58 @@ export function getFabricCanvas(): Canvas | null {
 
 // Функция адаптивного масштабирования Fabric канваса с сохранением aspect ratio
 export function fitFabricCanvas(
-  fabricCanvas: Canvas | null,
-  fabricCanvasEl: HTMLCanvasElement | null,
-  canvasWrapper: HTMLElement | null,
-  inputWidthMM: number,
-  inputHeightMM: number
-): void {
-  if (!canvasWrapper || !fabricCanvasEl || !fabricCanvas) return;
-
+    fabricCanvas: Canvas | null,
+    fabricCanvasEl: HTMLCanvasElement | null,
+    canvasWrapper: HTMLElement | null,
+    inputWidthMM: number,
+    inputHeightMM: number
+  ): void {
+  
+  if (!canvasWrapper || !fabricCanvasEl || !fabricCanvas) return
   const aspect = inputWidthMM / inputHeightMM;
-  console.log('AR from file ', aspect);
-
-  // Вычисляем размеры для отображения при сохранении aspect ratio
+  console.log('AR from file ', aspect )
   let drawW = canvasWrapper.clientWidth;
-  let drawH = canvasWrapper.clientHeight;
-  console.log('AR w h before', drawW, drawH);
-  const aspectWrapper = drawW / drawH;
-
+  let drawH = canvasWrapper.clientHeight; 
+  console.log('AR w h before', drawW, drawH )
+  let aspectWrapper = drawW/drawH
   if (aspectWrapper < aspect) {
-    if (inputWidthMM > inputHeightMM) {
-      drawW = drawH * aspect;
-    } else {
-      drawH = drawW / aspect;
+    if (inputWidthMM > inputHeightMM) { 
+      drawW =  drawH * aspect;
     }
-  } else {
-    if (inputWidthMM > inputHeightMM) {
+    else {
       drawH = drawW / aspect;
-    } else {
-      drawW = drawH * aspect;
     }
   }
-
-  console.log('AR w h after', drawW, drawH);
-  console.log('AR step2 ', drawW / drawH);
-
-  // Устанавливаем CSS размеры (визуальный размер канваса)
+  else {
+    if (inputWidthMM > inputHeightMM) { 
+      drawH = drawW / aspect;
+    }
+    else {
+      drawW =  drawH * aspect;
+    }
+  }
+  console.log('AR w h after', drawW, drawH )
+  console.log('AR step2 ', drawW/drawH )
+  // Задаём размеры канваса в стиле (css)
   fabricCanvasEl.style.width = `${drawW}px`;
   fabricCanvasEl.style.height = `${drawH}px`;
 
-  // Получаем DPR
-  const dpr = window.devicePixelRatio || 1;
-
-  // Фактические размеры канваса с учётом DPR
-  const newCanvasWidth = Math.round(drawW * dpr);
-  const newCanvasHeight = Math.round(drawH * dpr);
-
-  // Масштабируем объекты относительно текущих размеров
+  // Задаём размеры канваса в пикселях с учётом DPR
+    const dpr = window.devicePixelRatio || 1
+  const newCanvasWidth = Math.round(drawW * dpr)
+  const newCanvasHeight = Math.round(drawH * dpr)
   const scaleX = newCanvasWidth / fabricCanvas.getWidth();
   const scaleY = newCanvasHeight / fabricCanvas.getHeight();
 
   fabricCanvas.discardActiveObject();
-
-  // Здесь нужно учитывать, что объекты могут быть уже отмасштабированы
-  // Если возможно, хранить изначальные позиции и масштабы отдельно и использовать их
-  // Но пока повторно сохраняем и масштабируем относительно текущих значений
-  const objectStates = new Map<
-    fabric.Object,
-    { left: number; top: number; scaleX: number; scaleY: number }
-  >();
-
-  fabricCanvas.getObjects().forEach((obj) => {
+    // Сохраняем текущие параметры объектов
+  const objectStates = new Map<FabricObject, {
+    left: number;
+    top: number;
+    scaleX: number;
+    scaleY: number;
+  }>();
+  fabricCanvas.getObjects().forEach(obj => {
     objectStates.set(obj, {
       left: obj.left ?? 0,
       top: obj.top ?? 0,
@@ -156,29 +148,26 @@ export function fitFabricCanvas(
     });
   });
 
-  // Устанавливаем новые размеры канваса
-  fabricCanvas.setWidth(newCanvasWidth);
-  fabricCanvas.setHeight(newCanvasHeight);
-
-  // Масштабируем объекты по новым вычислениям
-  fabricCanvas.getObjects().forEach((obj) => {
+  fabricCanvas.setWidth(newCanvasWidth)
+  fabricCanvas.setHeight(newCanvasHeight)
+  
+  console.log('[fitFabricCanvas] Масштабы:', scaleX, scaleY)
+  
+  //Масштабируем объекты на основе ранее сохранённых базовых позиций и масштабов
+  fabricCanvas.getObjects().forEach(obj => {
     const orig = objectStates.get(obj);
     if (!orig) return;
-
     obj.left = orig.left * scaleX;
     obj.top = orig.top * scaleY;
     obj.scaleX = orig.scaleX * scaleX;
     obj.scaleY = orig.scaleY * scaleY;
     obj.setCoords();
   });
-
-  fabricCanvas.renderAll();
-
-  // Может быть, нужно триггерить событие о модификации
+  
+  fabricCanvas.renderAll()
   const objects = fabricCanvas.getObjects();
-  if (objects.length) {
-    fabricCanvas.fire('object:modified', { target: objects[0] });
-  }
+  const firstObject = objects[0];
+  fabricCanvas.fire('object:modified', { target: firstObject });
 }
 
 
