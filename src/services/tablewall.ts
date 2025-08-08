@@ -1,3 +1,4 @@
+//src/tablewall.ts
 import * as THREE from 'three';
 
 import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
@@ -62,7 +63,9 @@ export class Table extends THREE.Group {
 
     // Overlay (уменьшим позже)
 
-    // const bottleCausticTexture = textureLoader.load('./textures/caustics/bottle.png');
+   const causticTexture = new THREE.TextureLoader().load('/textures/caustics/Caustic_Free.jpg');
+    causticTexture.wrapS = THREE.RepeatWrapping;
+    causticTexture.wrapT = THREE.RepeatWrapping;
     const overlayMaterial = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,//0xe4e4e4,
       metalness: 0,
@@ -76,7 +79,10 @@ export class Table extends THREE.Group {
       reflectivity: 0,
       side: THREE.FrontSide,        
     });
-    
+    // Назначение на материал оверлея
+    // overlayMaterial.lightMap = causticTexture;
+    // overlayMaterial.lightMapIntensity = 1.0;
+    // overlayMaterial.needsUpdate = true;
     const overlayGeometry = new THREE.PlaneGeometry(width, depth);
     this.overlay = new THREE.Mesh(overlayGeometry, overlayMaterial);
     this.overlay.position.set(0, tableHeight/2 + tableHeight*0.03, 0);

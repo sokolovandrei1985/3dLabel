@@ -74,9 +74,9 @@ export class FabricThreeTextureManager {
 
     if (graphicsStore.renderer && graphicsStore.activeCamera && graphicsStore.scene) {
       graphicsStore.renderer.render(graphicsStore.scene, graphicsStore.activeCamera);
-      console.log('[redrawScene] Three.js сцена отрендерена');
+      //console.log('[redrawScene] Three.js сцена отрендерена');
     } else {
-      console.warn('[redrawScene] renderer, activeCamera или scene не инициализированы');
+      //console.warn('[redrawScene] renderer, activeCamera или scene не инициализированы');
     }
   }
 
@@ -103,7 +103,7 @@ export class FabricThreeTextureManager {
 
   async updateTextureWithoutControls(textureStore: TextureStoreType) {
     if (!this.fabricCanvas || !this.offscreenFabricCanvas) {
-      console.warn('Fabric canvases not initialized');
+      //console.warn('Fabric canvases not initialized');
       return;
     }
 
@@ -113,7 +113,7 @@ export class FabricThreeTextureManager {
     const visualHeight = this.fabricCanvas.getHeight();
 
     if (visualWidth === 0 || visualHeight === 0) {
-      console.warn('Visual fabric canvas has zero width or height, skipping texture update');
+      //console.warn('Visual fabric canvas has zero width or height, skipping texture update');
       return;
     }
 
@@ -138,11 +138,11 @@ export class FabricThreeTextureManager {
       }
     }
     if (activeObject?.type === 'activeselection') {
-      console.log('[updateTextureWithoutControls] Active children:', (activeObject as ActiveSelection).getObjects());
+      //console.log('[updateTextureWithoutControls] Active children:', (activeObject as ActiveSelection).getObjects());
     }
-    console.log('[updateTextureWithoutControls] activeObject.type:', activeObject?.type);
-    console.log('[updateTextureWithoutControls] fabricObjects:', fabricObjects);
-    console.log('[updateTextureWithoutControls] activeContainedObjects:', Array.from(activeContainedObjects));
+    //console.log('[updateTextureWithoutControls] activeObject.type:', activeObject?.type);
+    //console.log('[updateTextureWithoutControls] fabricObjects:', fabricObjects);
+    //console.log('[updateTextureWithoutControls] activeContainedObjects:', Array.from(activeContainedObjects));
     
     this.offscreenFabricCanvas.clear();
 
@@ -163,9 +163,9 @@ export class FabricThreeTextureManager {
         if ((obj as any).name === '__border__') continue;
         if (activeObject?.type === 'activeselection') continue;
         if (activeContainedObjects.has(obj)) continue;
-        console.log('Проверяем объект:', obj);
+        //console.log('Проверяем объект:', obj);
         if (activeContainedObjects.has(obj)) {
-          console.log('Пропускаем объект из activeContainedObjects:', obj);
+          //console.log('Пропускаем объект из activeContainedObjects:', obj);
           continue;
         }
 
@@ -224,8 +224,8 @@ export class FabricThreeTextureManager {
         this.offscreenFabricCanvas.add(clonedActive);
       }
       
-      console.log('Offscreen objescts = ', this.offscreenFabricCanvas.getObjects())
-      console.log('activeObject?.type = ', activeObject?.type)
+      //console.log('Offscreen objescts = ', this.offscreenFabricCanvas.getObjects())
+      //console.log('activeObject?.type = ', activeObject?.type)
       //Применяем фильтры
       // this.applyFiltersToImages();
 
@@ -247,7 +247,7 @@ export class FabricThreeTextureManager {
 
       //  this.redrawScene(); // вызов перерисовки после обновления текстуры
     } catch (error) {
-      console.error('Error updating texture:', error);
+      //console.error('Error updating texture:', error);
     }
   }
 }

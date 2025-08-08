@@ -204,7 +204,7 @@ directionalLight.shadow.camera.updateProjectionMatrix();
 scene.add(directionalLight);
 
 const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
-// scene.add(helper);
+scene.add(helper);
 
   const directional1 = new THREE.DirectionalLight(0xffffff, 3);
   directional1.position.set(0, 1, -1);

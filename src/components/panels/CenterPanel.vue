@@ -1,3 +1,4 @@
+//CenterPanel.vue
 <template>
   <div class="panel-wrapper">
     <div
@@ -32,7 +33,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { initScene, onWindowResize } from '@/services/useThreeScene'
-import { initFabricCanvas, loadCanvasConfig, type CanvasConfig, fitFabricCanvas } from '@/services/useImageCanvas'
+import { initFabricCanvas, loadCanvasConfig, type CanvasConfig, fitFabricCanvas, bringObjectsToFront, sendObjectsToBack, bringObjectsForward, sendObjectsBackwards } from '@/services/useImageCanvas'
 import type { Canvas } from 'fabric'
 import { useFabricStore } from '@/stores/fabric'
 import { useTextureStore } from '@/stores/texture'
@@ -91,6 +92,24 @@ function onToggle3DView() {
   }, 400)
 }
 
+// объявляем обработчики вне onMounted
+const onBringToFront = () => {
+  if (fabricCanvasInstance.value)
+    bringObjectsToFront(fabricCanvasInstance.value as any)
+}
+const onSendToBack = () => {
+  if (fabricCanvasInstance.value) 
+    sendObjectsToBack(fabricCanvasInstance.value as any)
+}
+const onBringForward = () => {
+  if (fabricCanvasInstance.value) 
+    bringObjectsForward(fabricCanvasInstance.value as any)
+}
+const onSendBackwards = () => {
+  if (fabricCanvasInstance.value) 
+    sendObjectsBackwards(fabricCanvasInstance.value as any)
+}
+
 onMounted(async () => {
   // Загружаем настройки размеров
   const config: CanvasConfig | null = await loadCanvasConfig()
@@ -126,6 +145,32 @@ onMounted(async () => {
         originalCanvasHeight.value = fabricCanvas.getHeight()
 
         fabricStore.setCanvas(fabricCanvas)
+        
+          // --- Добавляем снэппинг поворота к 0/90/180/270 градусам ---
+        fabricCanvas.on('object:rotating', (e) => {
+          const obj = e.target;
+          if (!obj) return;
+
+          const angle = obj.angle ?? 0;
+
+          let normalizedAngle = angle % 360;
+          if (normalizedAngle < 0) normalizedAngle += 360;
+
+          const snapAngles = [0, 90, 180, 270];
+
+          let closest = snapAngles.reduce((prev, curr) => 
+            Math.abs(curr - normalizedAngle) < Math.abs(prev - normalizedAngle) ? curr : prev
+          );
+
+          const SNAP_THRESHOLD = 5;
+
+          if (Math.abs(normalizedAngle - closest) <= SNAP_THRESHOLD) {
+            obj.angle = closest;
+            obj.setCoords();
+            fabricCanvas.requestRenderAll();
+          }
+        });                             
+
 
         fabricTextureManager.value = new FabricThreeTextureManager(fabricCanvas, width, height)
         await fabricTextureManager.value.updateTextureWithoutControls(textureStore)
@@ -177,6 +222,10 @@ onMounted(async () => {
   // Регистрируем слушатели глобальных событий
   window.addEventListener('toggle-3d-view', onToggle3DView)
   window.addEventListener('screenshoot-request', onMakeScreenshots)
+  window.addEventListener('objects:bringToFront', onBringToFront)
+  window.addEventListener('objects:sendToBack', onSendToBack)
+  window.addEventListener('objects:bringForward', onBringForward)
+  window.addEventListener('objects:sendBackwards', onSendBackwards)
 })
 
 onBeforeUnmount(() => {
@@ -188,6 +237,10 @@ onBeforeUnmount(() => {
   }
   window.removeEventListener('toggle-3d-view', onToggle3DView)
   window.removeEventListener('screenshoot-request', onMakeScreenshots)
+  window.removeEventListener('objects:bringToFront', onBringToFront)
+  window.removeEventListener('objects:sendToBack', onSendToBack)
+  window.removeEventListener('objects:bringForward', onBringForward)
+  window.removeEventListener('objects:sendBackwards', onSendBackwards)
 })
 </script>
 
