@@ -41,7 +41,21 @@ export function useScreenshooter(params: {
     await delay(150)
 
     if (threeContainer.value) {
-      renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight)
+      const maxWidth = 2000; // максимум по ширине (например, 4K)
+      const maxHeight = 2160; // максимум по высоте
+
+      const scale = 3;
+
+      if (!threeContainer.value) throw new Error('Container not defined');
+
+      let width = threeContainer.value.clientWidth * scale;
+      let height = threeContainer.value.clientHeight * scale;
+
+      // Ограничиваем максимальные значения
+      width = Math.min(width, maxWidth);
+      height = Math.min(height, maxHeight);
+
+      renderer.setSize(width, height, false);
       fitModelToView()
     }
     await delay(100)
@@ -56,7 +70,10 @@ export function useScreenshooter(params: {
       renderer.render(scene, activeCamera)
       shots[view] = await captureScreenshot()
     }
-
+     // Вернуть размеры обратно
+    if (threeContainer.value) {
+      renderer.setSize(threeContainer.value.clientWidth, threeContainer.value.clientHeight, false)
+    }
     // Все виды должны быть обработаны
     if (Object.keys(shots).length !== VIEWS.length) {
       throw new Error('Not all views were captured!')

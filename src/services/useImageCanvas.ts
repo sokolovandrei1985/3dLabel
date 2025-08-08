@@ -1,3 +1,4 @@
+//useImageCanvas.ts
 import { Canvas, FabricText, FabricObject, FabricImage, ActiveSelection, Rect, Group} from 'fabric'
 import * as THREE from 'three'
 import { useFabricStore } from '@/stores/fabric';
@@ -87,59 +88,60 @@ export function getFabricCanvas(): Canvas | null {
 }
 
 // Функция адаптивного масштабирования Fabric канваса с сохранением aspect ratio
+
 export function fitFabricCanvas(
-    fabricCanvas: Canvas | null,
-    fabricCanvasEl: HTMLCanvasElement | null,
-    canvasWrapper: HTMLElement | null,
-    inputWidthMM: number,
-    inputHeightMM: number
-  ): void {
-  
-  if (!canvasWrapper || !fabricCanvasEl || !fabricCanvas) return
+  fabricCanvas: Canvas | null,
+  fabricCanvasEl: HTMLCanvasElement | null,
+  canvasWrapper: HTMLElement | null,
+  inputWidthMM: number,
+  inputHeightMM: number
+): void {
+  if (!canvasWrapper || !fabricCanvasEl || !fabricCanvas) return;
+
   const aspect = inputWidthMM / inputHeightMM;
-  console.log('AR from file ', aspect )
   let drawW = canvasWrapper.clientWidth;
-  let drawH = canvasWrapper.clientHeight; 
-  console.log('AR w h before', drawW, drawH )
-  let aspectWrapper = drawW/drawH
+  let drawH = canvasWrapper.clientHeight;
+  const aspectWrapper = drawW / drawH;
+
+  // Коррекция размеров с учетом исходного соотношения сторон
   if (aspectWrapper < aspect) {
-    if (inputWidthMM > inputHeightMM) { 
-      drawW =  drawH * aspect;
-    }
-    else {
+    if (inputWidthMM > inputHeightMM) {
+      drawW = drawH * aspect;
+    } else {
       drawH = drawW / aspect;
     }
-  }
-  else {
-    if (inputWidthMM > inputHeightMM) { 
+  } else {
+    if (inputWidthMM > inputHeightMM) {
       drawH = drawW / aspect;
-    }
-    else {
-      drawW =  drawH * aspect;
+    } else {
+      drawW = drawH * aspect;
     }
   }
-  console.log('AR w h after', drawW, drawH )
-  console.log('AR step2 ', drawW/drawH )
-  // Задаём размеры канваса в стиле (css)
+
+  // Задаём CSS размеры (логические пиксели)
   fabricCanvasEl.style.width = `${drawW}px`;
   fabricCanvasEl.style.height = `${drawH}px`;
 
-  // Задаём размеры канваса в пикселях с учётом DPR
-    const dpr = window.devicePixelRatio || 1
-  const newCanvasWidth = Math.round(drawW * dpr)
-  const newCanvasHeight = Math.round(drawH * dpr)
-  const scaleX = newCanvasWidth / fabricCanvas.getWidth();
-  const scaleY = newCanvasHeight / fabricCanvas.getHeight();
+  // Device Pixel Ratio для поддержки высокой плотности пикселей
+  const dpr = 1//window.devicePixelRatio || 2;
+  console.log('dpr=', dpr)
+  // Новые физические размеры канваса с учетом DPR
+  const newCanvasWidth = Math.round(drawW * dpr);
+  const newCanvasHeight = Math.round(drawH * dpr);
+
+  // Сохраняем размеры канваса до изменения (важно для правильного масштабирования)
+  const oldWidth = fabricCanvas.getWidth();
+  const oldHeight = fabricCanvas.getHeight();
+
+  // Рассчитываем коэффициенты масштабирования
+  const scaleX = newCanvasWidth / oldWidth;
+  const scaleY = newCanvasHeight / oldHeight;
 
   fabricCanvas.discardActiveObject();
-    // Сохраняем текущие параметры объектов
-  const objectStates = new Map<FabricObject, {
-    left: number;
-    top: number;
-    scaleX: number;
-    scaleY: number;
-  }>();
-  fabricCanvas.getObjects().forEach(obj => {
+
+  // Сохраняем исходные состояния объектов (позиция и масштаб)
+  const objectStates = new Map<FabricObject, { left: number; top: number; scaleX: number; scaleY: number }>();
+  fabricCanvas.getObjects().forEach((obj) => {
     objectStates.set(obj, {
       left: obj.left ?? 0,
       top: obj.top ?? 0,
@@ -148,13 +150,12 @@ export function fitFabricCanvas(
     });
   });
 
-  fabricCanvas.setWidth(newCanvasWidth)
-  fabricCanvas.setHeight(newCanvasHeight)
-  
-  console.log('[fitFabricCanvas] Масштабы:', scaleX, scaleY)
-  
-  //Масштабируем объекты на основе ранее сохранённых базовых позиций и масштабов
-  fabricCanvas.getObjects().forEach(obj => {
+  // Устанавливаем новые физические размеры канваса
+  fabricCanvas.setWidth(newCanvasWidth);
+  fabricCanvas.setHeight(newCanvasHeight);
+
+  // Масштабируем объекты с сохранением пропорций и позиций
+  fabricCanvas.getObjects().forEach((obj) => {
     const orig = objectStates.get(obj);
     if (!orig) return;
     obj.left = orig.left * scaleX;
@@ -163,12 +164,17 @@ export function fitFabricCanvas(
     obj.scaleY = orig.scaleY * scaleY;
     obj.setCoords();
   });
-  
-  fabricCanvas.renderAll()
+
+  fabricCanvas.renderAll();
+  // fabricCanvas.setZoom(0.5);
+
+  // Триггерим событие изменения для первого объекта (опционально)
   const objects = fabricCanvas.getObjects();
-  const firstObject = objects[0];
-  fabricCanvas.fire('object:modified', { target: firstObject });
+  if (objects.length) {
+    fabricCanvas.fire('object:modified', { target: objects[0] });
+  }
 }
+
 
 
 
@@ -645,7 +651,7 @@ export async function updateTextureWithoutControls(
     for (const obj of fabricObjects) {
       if ((obj as any).name === '__border__') continue;
       
-      if (activeObject?.type === 'activeSelection') continue;
+      if (activeObject?.type === 'activeselection') continue;
 
       if (activeContainedObjects.has(obj)) continue;
 
@@ -723,4 +729,84 @@ export async function updateTextureWithoutControls(
     console.error('Error cloning fabric objects:', err);
     throw err;
   }
+}
+
+
+// ------------------- Управление порядком объектов --------------------
+
+export function bringObjectsToFront(canvas: Canvas): void {
+  if (!canvas) return
+  const activeObject = canvas.getActiveObject()
+  if (!activeObject) return
+
+  if (activeObject.type === 'activeselection') {
+    const activeSelection = activeObject as ActiveSelection
+    // Перемещаем каждый объект на передний план в порядке выделения
+    for (const obj of activeSelection.getObjects()) {
+      canvas.bringObjectToFront(obj)
+    }
+    canvas.discardActiveObject()
+    canvas.setActiveObject(activeSelection)
+  } else {
+    canvas.bringObjectToFront(activeObject)
+  }
+  canvas.discardActiveObject()
+  canvas.requestRenderAll()
+}
+
+export function sendObjectsToBack(canvas: Canvas): void {
+  if (!canvas) return
+  const activeObject = canvas.getActiveObject()
+  if (!activeObject) return
+
+  if (activeObject.type === 'activeselection') {
+    const activeSelection = activeObject as ActiveSelection
+    for (const obj of activeSelection.getObjects()) {
+      canvas.sendObjectToBack(obj)
+    }
+    canvas.discardActiveObject()
+    canvas.setActiveObject(activeSelection)
+  } else {
+    canvas.sendObjectToBack(activeObject)
+  }
+  canvas.discardActiveObject()
+  canvas.requestRenderAll()
+}
+
+export function bringObjectsForward(canvas: Canvas): void {
+  if (!canvas) return
+  const activeObject = canvas.getActiveObject()
+  if (!activeObject) return
+
+  if (activeObject.type === 'activeselection') {
+    const activeSelection = activeObject as ActiveSelection
+    for (const obj of activeSelection.getObjects()) {
+      canvas.bringObjectForward(obj)
+    }
+    canvas.discardActiveObject()
+    canvas.setActiveObject(activeSelection)
+  } else {
+    canvas.bringObjectForward(activeObject)
+  }
+  canvas.discardActiveObject()
+  canvas.requestRenderAll()
+}
+
+export function sendObjectsBackwards(canvas: Canvas): void {
+  if (!canvas) return
+  const activeObject = canvas.getActiveObject()
+  if (!activeObject) return
+
+  if (activeObject.type === 'activeselection') {
+    const activeSelection = activeObject as ActiveSelection
+    for (const obj of activeSelection.getObjects()) {
+      canvas.sendObjectBackwards(obj)
+    }
+    canvas.discardActiveObject()
+    canvas.setActiveObject(activeSelection)
+  } else {
+    canvas.sendObjectBackwards(activeObject)
+  }
+  canvas.discardActiveObject()
+  canvas.requestRenderAll()
 }
