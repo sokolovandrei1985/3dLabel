@@ -6,9 +6,12 @@ import 'ant-design-vue/dist/reset.css'
 // import { useImageCanvas } from './services/useImageCanvas'
 // import { useFontManager } from './services/useFontManager'
 // import { useThreeScene } from './services/useThreeScene'
+import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons-vue'
 
 const app = createApp(App)
 app.use(Antd)
+app.component('MenuFoldOutlined', MenuFoldOutlined)
+app.component('MenuUnfoldOutlined', MenuUnfoldOutlined)
 
 const pinia = createPinia()
 app.use(pinia)
