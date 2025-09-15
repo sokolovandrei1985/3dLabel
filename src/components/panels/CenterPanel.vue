@@ -7,13 +7,13 @@
         vertical: isVertical,
         horizontal: !isVertical
       }"
-    >      
+    >
       <div
         id="center-top"
         class="center-block"
         :class="{ expanded: expandTop }"
         ref="threeContainer"
-      > 
+      >
       </div>
 
       <!-- Fabric.js / Нижняя панель -->
@@ -98,15 +98,15 @@ const onBringToFront = () => {
     bringObjectsToFront(fabricCanvasInstance.value as any)
 }
 const onSendToBack = () => {
-  if (fabricCanvasInstance.value) 
+  if (fabricCanvasInstance.value)
     sendObjectsToBack(fabricCanvasInstance.value as any)
 }
 const onBringForward = () => {
-  if (fabricCanvasInstance.value) 
+  if (fabricCanvasInstance.value)
     bringObjectsForward(fabricCanvasInstance.value as any)
 }
 const onSendBackwards = () => {
-  if (fabricCanvasInstance.value) 
+  if (fabricCanvasInstance.value)
     sendObjectsBackwards(fabricCanvasInstance.value as any)
 }
 
@@ -145,7 +145,7 @@ onMounted(async () => {
         originalCanvasHeight.value = fabricCanvas.getHeight()
 
         fabricStore.setCanvas(fabricCanvas)
-        
+
           // --- Добавляем снэппинг поворота к 0/90/180/270 градусам ---
         fabricCanvas.on('object:rotating', (e) => {
           const obj = e.target;
@@ -158,7 +158,7 @@ onMounted(async () => {
 
           const snapAngles = [0, 90, 180, 270];
 
-          let closest = snapAngles.reduce((prev, curr) => 
+          let closest = snapAngles.reduce((prev, curr) =>
             Math.abs(curr - normalizedAngle) < Math.abs(prev - normalizedAngle) ? curr : prev
           );
 
@@ -169,7 +169,7 @@ onMounted(async () => {
             obj.setCoords();
             fabricCanvas.requestRenderAll();
           }
-        });                             
+        });
 
 
         fabricTextureManager.value = new FabricThreeTextureManager(fabricCanvas, width, height)
@@ -246,9 +246,9 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .panel-wrapper {
+  overflow: hidden;
   width: 100%;
   height: 100%;
-  padding: 8px;
   box-sizing: border-box;
   background-color: #f5f5f5;
   /* box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) */
@@ -260,7 +260,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   position: relative; /* важно для позиционирования вложенных абсолютных элементов */
-  gap: 12px;
+  gap: 8px;
   background-color: #f5f5f5;
   min-width: 0;
 }

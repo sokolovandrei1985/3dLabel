@@ -143,7 +143,7 @@
               </div>
             </a-collapse-panel>
           </a-collapse>
-          
+
         </div>
 
         <div v-else>
@@ -172,11 +172,7 @@ import { useFabricStore } from '@/stores/fabric'
 import { saveHighResImage } from '@/services/useImageExport'
 import { UploadOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
 import { useFontLoader } from '@/composables/useFontLoader'
-
-interface TabItem {
-  key: string
-  label: string
-}
+import type { TabItem } from '@/types/tabs'
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -773,10 +769,10 @@ const onSaveImage = async () => {
 
 <style scoped>
 .panel-wrapper {
+  overflow: hidden;
   width: 100%;
   height: 100%;
   background-color: #f5f5f5;
-  padding: 8px;
   padding-right: 0px;
   box-sizing: border-box;
 }
@@ -786,5 +782,9 @@ const onSaveImage = async () => {
   padding: 8px;
   /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.08); */
   height: 100%;
+}
+.custom-tabs > *:nth-child(2) {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>

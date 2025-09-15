@@ -112,7 +112,7 @@
 import { ref, onMounted } from 'vue'
 import LeftPanel from './components/panels/LeftPanel.vue'
 import CenterPanel from './components/panels/CenterPanel.vue'
-import RightPanel from './components/panels/RightPanel.vue'
+import RightPanel from './components/panels/RightPanel'
 import {
   loadSceneModels,
   loadEnvironmentMap,
@@ -211,40 +211,14 @@ function onFitToView() {
 
 <style scoped>
 #container {
-  display: flex;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 3fr minmax(min-content, max-content);
+  column-gap: 8px;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   box-sizing: border-box;
   background-color: #f5f5f5;
-}
-
-#container > * {
-  min-width: 0;
-  flex-basis: 0;
-  transition: flex 300ms ease;
-}
-
-/* 2:8:2 */
-#container > *:nth-child(1) { flex: 2; }
-#container > *:nth-child(2) { flex: 8; } /* CenterPanel */
-#container > *:nth-child(3) { flex: 2; } /* RightPanel */
-
-/* Первая вкладка открыта — правая шире */
-#container.first-tab-open > *:nth-child(2) { flex: 6; }
-#container.first-tab-open > *:nth-child(3) { flex: 4; }
-
-/* Свёрнутая правая панель — центр забирает место */
-#container.right-collapsed > *:nth-child(2) { flex: 10; }
-#container.right-collapsed > *:nth-child(3) {
-  flex: 0 0 56px;
-  min-width: 56px;
-  max-width: 56px;
-}
-
-/* Приоритет свёрнутого состояния над first-tab-open */
-#container.first-tab-open.right-collapsed > *:nth-child(2) { flex: 10; }
-#container.first-tab-open.right-collapsed > *:nth-child(3) {
-  flex: 0 0 56px;
 }
 </style>

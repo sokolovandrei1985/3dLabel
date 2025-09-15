@@ -72,6 +72,7 @@ watch(activeTab, (newKey) => { emit('update:activeTab', newKey) })
 
 <style scoped>
 .panel-wrapper {
+  overflow: hidden;
   position: relative;
   width: 100%;
   height: 100%;
