@@ -13,7 +13,6 @@ interface FaceDesc {
 
 const FONT_GLOB = import.meta.glob(
   '/src/assets/fonts/**/*.{woff2,woff,ttf,otf}',
-  //'/src/assets/fonts/**/*.ttf',
   { eager: true, as: 'url' }
 ) as Record<string, string>;
 
