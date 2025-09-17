@@ -160,6 +160,8 @@ const onTabChange = (activeTabKey: string): void => {
 
 /* Блок табов */
 .custom-tabs {
+  min-width: min(394px, 30vw);
+  max-width: 30vw;
   background-color: #fff;
   border-radius: 8px;
   padding: 8px;
