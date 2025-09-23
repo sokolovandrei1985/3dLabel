@@ -51,7 +51,7 @@ function extToFormat(ext: string): FaceDesc['format'] {
   if (e.endsWith('ttf')) return 'ttf';
   return 'otf';
 }
-
+/*
 function buildCss(faces: FaceDesc[]): string {
   // Группируем по (family, weight, style) и формируем src с fallback форматов
   const byKey = new Map<string, FaceDesc[]>();
@@ -128,4 +128,30 @@ export function useFontLoader() {
   }
 
   return { families, ensureLoaded };
+}
+*/
+export const families: string[] = []
+
+export async function loadFonts(): Promise<void> {
+  const faces: FaceDesc[] = []
+
+  for (const [path, url] of Object.entries(FONT_GLOB)) {
+    const meta = parseFileName(path)
+    const format = extToFormat(path)
+    faces.push({
+      url,
+      format,
+      family: meta.family,
+      weight: meta.weight,
+      style: meta.style,
+    })
+  }
+
+  if (faces.length) {
+    const fontFaces = faces.map(f => (new FontFace(f.family, `url(${f.url})`, { style: f.style, weight: '' + f.weight })))
+    await Promise.all(fontFaces.map(ff => (ff.load())))
+    fontFaces.forEach(ff => { document.fonts.add(ff) })
+    if (families.length) families.length = 0
+    families.push(...Array.from(new Set(faces.map(f => f.family))).sort())
+  }
 }

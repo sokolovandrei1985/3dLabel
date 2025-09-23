@@ -143,7 +143,7 @@
               </div>
             </a-collapse-panel>
           </a-collapse>
-          
+
         </div>
 
         <div v-else>
@@ -171,12 +171,9 @@ import { Rect, FabricObject, ActiveSelection, loadSVGFromString, util, Canvas, T
 import { useFabricStore } from '@/stores/fabric'
 import { saveHighResImage } from '@/services/useImageExport'
 import { UploadOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-vue'
-import { useFontLoader } from '@/composables/useFontLoader'
-
-interface TabItem {
-  key: string
-  label: string
-}
+//import { useFontLoader } from '@/composables/useFontLoader'
+import { loadFonts, families } from '@/composables/useFontLoader'
+import type { TabItem } from '@/types/tabs'
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -211,7 +208,11 @@ const fabricStore = useFabricStore()
 
 /** ------ Текст ------ **/
 // Список шрифтов из папки
-const { families: fontOptions, ensureLoaded } = useFontLoader()
+//const { families: fontOptions, ensureLoaded } = useFontLoader()
+const fontOptions = ref([])
+loadFonts().then(() => {
+  fontOptions.value = families
+})
 const textFont = ref('Arial')
 const textSize = ref(24)
 const textColor = ref('#000000')
@@ -323,7 +324,7 @@ const addTextbox = async () => {
   if (!canvas) { alert('Fabric Canvas не инициализирован'); return }
 
   // гарантируем, что выбранный шрифт готов
-  await ensureLoaded(textFont.value, 400, 'normal')
+  //await ensureLoaded(textFont.value, 400, 'normal')
 
   const tbWidth = Math.max(100, Math.floor((canvas.width ?? 500) * DEFAULT_TEXTBOX_WIDTH_RATIO))
   const tb = new Textbox('Введите текст…', {
@@ -348,7 +349,7 @@ const addTextbox = async () => {
 
 const updateTextFont = async (font: string) => {
   const obj = fabricStore.canvas?.getActiveObject() as any
-  await ensureLoaded(font, obj?.fontWeight ?? 400, obj?.fontStyle ?? 'normal')
+  //await ensureLoaded(font, obj?.fontWeight ?? 400, obj?.fontStyle ?? 'normal')
   if (obj && (obj.type === 'textbox' || obj.type === 'text')) {
     obj.set({ fontFamily: font })
     fabricStore.canvas?.requestRenderAll()
@@ -408,7 +409,7 @@ function updateShadow(params: {
 
 // ⚠️ ВАЖНО: этот watch на getActiveObject() сам по себе не сработает,
 // поэтому ниже мы навешиваем события canvas и вызываем refreshUI().
-watch(
+/*watch(
   () => fabricStore.canvas?.getActiveObject(),
   (obj) => {
     if (obj) {
@@ -441,7 +442,7 @@ watch(
     }
   },
   { immediate: true }
-)
+)*/
 
 watch(shadowBlur, (val) => {
   const obj = fabricStore.canvas?.getActiveObject()
@@ -632,6 +633,7 @@ onMounted(async () => {
     console.log('Загруженные табы:', tabsData)
     leftTabs.value = tabsData.left
     activeTab.value = tabsData.left[0]?.key || ''
+
   } catch (err) {
     console.error('Ошибка загрузки tabs.json:', err)
   }
@@ -773,10 +775,10 @@ const onSaveImage = async () => {
 
 <style scoped>
 .panel-wrapper {
+  overflow: hidden;
   width: 100%;
   height: 100%;
   background-color: #f5f5f5;
-  padding: 8px;
   padding-right: 0px;
   box-sizing: border-box;
 }
@@ -786,5 +788,9 @@ const onSaveImage = async () => {
   padding: 8px;
   /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.08); */
   height: 100%;
+}
+.custom-tabs > *:nth-child(2) {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>
