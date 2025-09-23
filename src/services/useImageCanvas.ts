@@ -10,8 +10,7 @@ import {ref} from 'vue'
 
 let fabricCanvas: Canvas | null = null
 
-const fabricTextureManager = ref<FabricThreeTextureManager | null>(null);
-
+//const fabricTextureManager = ref<FabricThreeTextureManager | null>(null);
 
 export type CanvasConfig = {
   inputWidthMM: number
@@ -40,23 +39,25 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
   try {
     const config = await loadCanvasConfig()
     if (!config) return null
-    
+
     const { inputWidthMM, inputHeightMM } = config
     // Перевод миллиметров в пиксели (96 DPI)
     const width = inputWidthMM * 96 / 25.4
     const height = inputHeightMM * 96 / 25.4
     // Установка размеров DOM-элемента
-    canvasEl.width = width
-    canvasEl.height = height
+    //canvasEl.width = width
+    //canvasEl.height = height
     // Инициализация Fabric.js canvas
     const fabricCanvas = new Canvas(canvasEl, {
       backgroundColor: 'rgba(236, 170, 47, 0.23)',
       selection: true,
     })
-    const strokeWidth = 2
-    fabricCanvas.setWidth(width)
-    fabricCanvas.setHeight(height)
-    const __border__ = new Rect({
+    //const strokeWidth = 2
+    fabricCanvas.setDimensions({ width, height }, { backstoreOnly: true })
+    //console.log(fabricCanvas.getHeight(), fabricCanvas.getWidth())
+    //fabricCanvas.setWidth(width)
+    //fabricCanvas.setHeight(height)
+    /*const __border__ = new Rect({
     left: strokeWidth/2,
     top: strokeWidth/2,
     width: width-strokeWidth - strokeWidth/2,
@@ -64,8 +65,8 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
     fill: 'rgba(0,0,0,0)', // прозрачная заливка
     stroke: 'black',       // цвет рамки (обводки)
     strokeWidth: strokeWidth,
-    selectable: false 
-    });
+    selectable: false
+    });*/
 
     // fabricCanvas.add(__border__)
 
@@ -76,7 +77,7 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
 
 
 
-    console.log('[Fabric] Канвас инициализирован:', { width, height })
+    console.log('[Fabric] Канвас инициализирован:', fabricCanvas)
     return fabricCanvas
   } catch (err) {
     console.error('[Fabric] Ошибка загрузки или инициализации:', err)
@@ -119,12 +120,16 @@ export function fitFabricCanvas(
   }
 
   // Задаём CSS размеры (логические пиксели)
-  fabricCanvasEl.style.width = `${drawW}px`;
-  fabricCanvasEl.style.height = `${drawH}px`;
+  fabricCanvas.setDimensions({ width: drawW, height: drawH }, { cssOnly: true })
+  //fabricCanvas.setZoom(fabricCanvas.getWidth() / drawW)
+  //console.log(fabricCanvas.getZoom())
+  //fabricCanvasEl.style.width = `${drawW}px`;
+  //fabricCanvasEl.style.height = `${drawH}px`;
 
+  /*
   // Device Pixel Ratio для поддержки высокой плотности пикселей
   const dpr = 1//window.devicePixelRatio || 2;
-  console.log('dpr=', dpr)
+  //console.log('dpr=', dpr)
   // Новые физические размеры канваса с учетом DPR
   const newCanvasWidth = Math.round(drawW * dpr);
   const newCanvasHeight = Math.round(drawH * dpr);
@@ -148,14 +153,14 @@ export function fitFabricCanvas(
       scaleX: obj.scaleX ?? 1,
       scaleY: obj.scaleY ?? 1,
     });
-  });
+  });*/
 
   // Устанавливаем новые физические размеры канваса
-  fabricCanvas.setWidth(newCanvasWidth);
-  fabricCanvas.setHeight(newCanvasHeight);
+  //fabricCanvas.setWidth(newCanvasWidth);
+  //fabricCanvas.setHeight(newCanvasHeight);
 
   // Масштабируем объекты с сохранением пропорций и позиций
-  fabricCanvas.getObjects().forEach((obj) => {
+  /*fabricCanvas.getObjects().forEach((obj) => {
     const orig = objectStates.get(obj);
     if (!orig) return;
     obj.left = orig.left * scaleX;
@@ -163,20 +168,17 @@ export function fitFabricCanvas(
     obj.scaleX = orig.scaleX * scaleX;
     obj.scaleY = orig.scaleY * scaleY;
     obj.setCoords();
-  });
+  });*/
 
   fabricCanvas.renderAll();
   // fabricCanvas.setZoom(0.5);
 
   // Триггерим событие изменения для первого объекта (опционально)
-  const objects = fabricCanvas.getObjects();
+  /*const objects = fabricCanvas.getObjects();
   if (objects.length) {
     fabricCanvas.fire('object:modified', { target: objects[0] });
-  }
+  }*/
 }
-
-
-
 
 // Интерфейс для хранения состояния объекта
 export interface ObjectTransformData {
@@ -195,7 +197,7 @@ export function saveAllObjectStates(canvas: Canvas) {
   if (!objectBuffer) {
     throw new Error('objectBuffer is not defined');
   }
-  
+
   canvas.getObjects().forEach(obj => {
     if (objectBuffer.has(obj)) {
       // Объект уже сохранён — пропускаем
@@ -248,7 +250,7 @@ export function loadImage(canvas: Canvas, url: string): Promise<FabricImage> {
       const img = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' });
       const canvasWidth = canvas.getWidth();
       const canvasHeight = canvas.getHeight();
-      
+
       img.set({
         originX: 'center',
         originY: 'center',
@@ -272,7 +274,7 @@ export function loadImage(canvas: Canvas, url: string): Promise<FabricImage> {
       img.scale(scale);
       canvas.add(img);
       canvas.setActiveObject(img);
-      canvas.requestRenderAll();      
+      canvas.requestRenderAll();
       saveAllObjectStates(canvas)
       logObjectBufferContents()
       resolve(img);  // здесь функция успешно завершается
@@ -294,7 +296,7 @@ export async function handleFileInputChange(
     const dataUrl = await readFileAsDataURL(file)
     try {
       const img = await loadImage(fabricCanvas, dataUrl)
-      
+
       loadedObjects.push(img)
     } catch (err) {
       console.error('Ошибка загрузки изображения:', err)
@@ -313,7 +315,7 @@ export async function handleFileInputChange(
     modelGroupForUpdate.scale.multiplyScalar(1 / 1.001)
     modelGroupForUpdate.updateMatrixWorld(true)
   }
-  
+
   // Сброс input, чтобы повторить выбор того же файла
   target.value = ''
 }
@@ -326,7 +328,7 @@ export async function handleFileInputChange(
 //     reader.readAsDataURL(file)
 //   })
 // }
-// 
+//
 export async function onLoadImageFromFiles(files: FileList, canvas: Canvas) {
   for (const file of Array.from(files)) {
     try {
@@ -354,7 +356,7 @@ function readFileAsDataURL(file: File): Promise<string> {
 
 export function logFabricCanvasObjects(canvas: Canvas): void {
   const objects = canvas.getObjects();
-  console.log('Объекты на Fabric канвасе:');
+  //console.log('Объекты на Fabric канвасе:');
   objects.forEach((obj: FabricObject, index: number) => {
     console.log(`Объект #${index + 1}:`, {
       type: obj.type,
@@ -373,12 +375,12 @@ export function logFabricCanvasObjects(canvas: Canvas): void {
     lockRotation: (obj as any).lockRotation,
     lockUniScaling: (obj as any).lockUniScaling,
     evented: obj.evented
-      
+
     });
   });
 }
 
-export function fitFabricCanvas_0(
+/*export function fitFabricCanvas_0(
   fabricCanvas: Canvas | null,
   fabricCanvasEl: HTMLCanvasElement | null,
   canvasWrapper: HTMLElement | null,
@@ -430,8 +432,8 @@ export function fitFabricCanvas_0(
   // Устанавливаем viewportTransform для масштабирования и сдвига
   // fabricCanvas.viewportTransform = [scale, 0, 0, scale, offsetX, offsetY];
   fabricCanvas.requestRenderAll();
-  console.log('[fitFabricCanvas] scale:', scale, 'offsetX:', offsetX, 'offsetY:', offsetY);
-}
+  //console.log('[fitFabricCanvas] scale:', scale, 'offsetX:', offsetX, 'offsetY:', offsetY);
+}*/
 
 export async function centerObjectOnCanvas(canvas: Canvas, img: FabricObject): Promise<void> {
   if (!img) return;
@@ -450,7 +452,7 @@ export async function centerObjectOnCanvas(canvas: Canvas, img: FabricObject): P
   const scaleY = canvasHeight / (img.height || 1);
   const scale = Math.min(scaleX, scaleY, 1);
   img.scale(scale);
-  
+
   img.setCoords();
   canvas.requestRenderAll();
 
@@ -544,7 +546,7 @@ export function enableCanvasZoomAndPan(canvas: Canvas) {
 ///////////////////////////////////////////////
 
 // Метод для установки размеров offscreen canvas с минимумом 2000px ширины (или по DPI)
-  
+
 let offscreenCanvas: HTMLCanvasElement | null = null;
 let offscreenFabricCanvas: Canvas | null = null;
 
@@ -594,13 +596,13 @@ export async function updateTextureWithoutControls(
   texture: THREE.Texture,
   resizeOffscreenCanvas: () => void
 ): Promise<void> {
-  console.log('[updateTextureWithoutControls] Начало обновления текстуры');
+  //console.log('[updateTextureWithoutControls] Начало обновления текстуры');
 
   if (!fabricCanvas || !offscreenFabricCanvas || !offscreenCanvas) {
     console.warn('Fabric canvases или offscreenCanvas не инициализированы');
     return;
   }
-  
+
   // Обновляем размеры offscreen канваса
   resizeOffscreenCanvas();
 
@@ -614,10 +616,10 @@ export async function updateTextureWithoutControls(
 
   const offscreenWidth = offscreenCanvas.width;
   const offscreenHeight = offscreenCanvas.height;
-  
+
   const scaleXRatio = offscreenWidth / visualWidth;
   const scaleYRatio = offscreenHeight / visualHeight;
-  
+
   const fabricObjects = fabricCanvas.getObjects();
   const activeObject = fabricCanvas.getActiveObject();
 
@@ -650,7 +652,7 @@ export async function updateTextureWithoutControls(
     // Добавляем объекты, которые не входят в активную группу
     for (const obj of fabricObjects) {
       if ((obj as any).name === '__border__') continue;
-      
+
       if (activeObject?.type === 'activeselection') continue;
 
       if (activeContainedObjects.has(obj)) continue;
@@ -717,7 +719,7 @@ export async function updateTextureWithoutControls(
         if (texture) {
           texture.image = offscreenFabricCanvas.lowerCanvasEl;
           texture.needsUpdate = true;
-          console.log('[updateTextureWithoutControls] texture.needsUpdate = true');
+          //console.log('[updateTextureWithoutControls] texture.needsUpdate = true');
         }
         resolve();
       };

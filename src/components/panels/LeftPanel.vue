@@ -633,6 +633,7 @@ onMounted(async () => {
     console.log('Загруженные табы:', tabsData)
     leftTabs.value = tabsData.left
     activeTab.value = tabsData.left[0]?.key || ''
+
   } catch (err) {
     console.error('Ошибка загрузки tabs.json:', err)
   }

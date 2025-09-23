@@ -133,18 +133,18 @@ export function useFontLoader() {
 export const families: string[] = []
 
 export async function loadFonts(): Promise<void> {
-  const faces: FaceDesc[] = [];
+  const faces: FaceDesc[] = []
 
   for (const [path, url] of Object.entries(FONT_GLOB)) {
-    const meta = parseFileName(path);
-    const format = extToFormat(path);
+    const meta = parseFileName(path)
+    const format = extToFormat(path)
     faces.push({
       url,
       format,
       family: meta.family,
       weight: meta.weight,
       style: meta.style,
-    });
+    })
   }
 
   if (faces.length) {

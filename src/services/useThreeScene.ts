@@ -67,7 +67,7 @@ export function setUICallbacks(callbacks: CameraUIControls) {
 export function initScene(container: HTMLElement): void {
   const width = container.clientWidth
   const height = container.clientHeight
-  console.log('width, height',width,height )
+  //console.log('width, height',width,height )
   containerEl = container; //запоминаем контейнер
 
   const graphicsStore = useGraphicsStore();
@@ -80,14 +80,14 @@ export function initScene(container: HTMLElement): void {
   function getAspect() {
     return container.clientWidth / container.clientHeight;
   }
-  
+
   const aspect = getAspect();
-  
+
   camera = new THREE.PerspectiveCamera(35, aspect, 0.1, 1000);
   camera.position.z = 8;
 
   //Создаем орто камеру
-  
+
   orthoCamera = new THREE.OrthographicCamera(
     -frustumSize * aspect / 2,
     frustumSize * aspect / 2,
@@ -114,7 +114,7 @@ export function initScene(container: HTMLElement): void {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.9;
 
-  console.log('Renderer initialized and appended');
+  //console.log('Renderer initialized and appended');
   renderer.shadowMap.enabled = true;
   // renderer.shadowMap.type = THREE.BasicShadowMap; // быстрые но "жесткие" тени без фильтрации
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -130,7 +130,7 @@ export function initScene(container: HTMLElement): void {
   controls.enabled = true; // Всегда включены
   controls.reset(); // сбрасывает вращение камеры
   controls.target.set(0, 0, 0);
-  
+
 
   // По умолчанию OrbitControls отвечают только за зум и панорамирование, вращение отключено
   controls.enableRotate = true;
@@ -154,7 +154,7 @@ export function initScene(container: HTMLElement): void {
 
   controls.update();
 
-  console.log('OrbitControls initialized with rotate disabled (manual rotation mode)');
+  //console.log('OrbitControls initialized with rotate disabled (manual rotation mode)');
 
 
  fixedPerspectiveCameraState = {
@@ -163,8 +163,8 @@ export function initScene(container: HTMLElement): void {
     zoom: 2, //camera.zoom,
     fov: camera.fov,
     controlsTarget: controls.target.clone(),
-    
-  };  
+
+  };
 
   //Выводим группы на сцену
 
@@ -209,7 +209,7 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
   const directional1 = new THREE.DirectionalLight(0xffffff, 3);
   directional1.position.set(0, 1, -1);
   scene.add(directional1);
-    
+
   const ambientLight = new THREE.AmbientLight(0xffffff, 3);
   scene.add(ambientLight);
 
@@ -247,7 +247,7 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
       if (canvasTexture && renderer && scene && activeCamera) {
         canvasTexture.needsUpdate = true;
         renderer.render(scene, activeCamera);
-        console.log('Three.js сцена отрендерена после обновления текстуры');
+        //console.log('Three.js сцена отрендерена после обновления текстуры');
       }
     }
   );
@@ -258,14 +258,14 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
 
 //Переключение камеры
   export function switchCamera(toCamera: 'perspective' | 'ortho') {
-  console.log('switchCamera to:', toCamera)
+  //console.log('switchCamera to:', toCamera)
 
   activeCamera = (toCamera === 'perspective') ? camera : orthoCamera;
 
   if (toCamera == 'perspective') {
     scene.remove(roomGroup)
     scene.add(tableGroup)
-  } 
+  }
   else {
     scene.add(roomGroup)
     scene.remove(tableGroup)
@@ -295,7 +295,7 @@ export function onWindowResize(container: HTMLElement) {
   const width = container.clientWidth;
   const height = container.clientHeight;
 
-  console.log('[onWindowResize] container size:', width, height);
+  //console.log('[onWindowResize] container size:', width, height);
 
   renderer.setSize(width, height);
 
@@ -308,8 +308,8 @@ export function onWindowResize(container: HTMLElement) {
   if (activeCamera instanceof THREE.PerspectiveCamera) {
     activeCamera.aspect = aspect;
     activeCamera.updateProjectionMatrix();
-    console.log('[onWindowResize] PerspectiveCamera updated. Aspect:', aspect);
-    
+    //console.log('[onWindowResize] PerspectiveCamera updated. Aspect:', aspect);
+
   }
 
   if (activeCamera instanceof THREE.OrthographicCamera) {
@@ -319,16 +319,16 @@ export function onWindowResize(container: HTMLElement) {
     activeCamera.top = frustumSize / 2;
     activeCamera.bottom = -frustumSize / 2;
     activeCamera.updateProjectionMatrix();
-    console.log('[onWindowResize] OrthographicCamera updated. Aspect:', aspect);
+    //console.log('[onWindowResize] OrthographicCamera updated. Aspect:', aspect);
   }
-  
+
   fitModelToView()
 }
 
 
 //Позиционирование модели
 export function setModelRotation(view: 'front' | 'back' | 'right' | 'left' | 'top') {
-  console.log('setModelRotation:', view)
+  //console.log('setModelRotation:', view)
 
   if (!pivotGroup) return;
 
@@ -382,7 +382,7 @@ export function setModelRotationAngle(degrees: number) {
 
 //Вписывание модели в окно
 export function fitModelToView() {
-  console.log('[fitModelToView] triggered')
+  //console.log('[fitModelToView] triggered')
 
   pivotGroup.quaternion.identity() // сброс поворота
 
@@ -398,15 +398,15 @@ const box = new THREE.Box3().setFromObject(modelGroup)
 const size = box.getSize(new THREE.Vector3()) // w, h, d
 const center = box.getCenter(new THREE.Vector3())
 
-console.log('[fitModelToView] Model bounding box size:', size)
-console.log('[fitModelToView] Model center:', center)
+//console.log('[fitModelToView] Model bounding box size:', size)
+//console.log('[fitModelToView] Model center:', center)
 
 // --- габариты окна ---
 const { width, height } = renderer.domElement.getBoundingClientRect()
 const windowAspect = width / height
 
-console.log('[fitModelToView] Viewport size:', { width, height })
-console.log('[fitModelToView] Window aspect ratio:', windowAspect)
+//console.log('[fitModelToView] Viewport size:', { width, height })
+//console.log('[fitModelToView] Window aspect ratio:', windowAspect)
 
 // небольшой отступ, чтобы модель не «липла» к краям
 const margin_p = 2
@@ -418,24 +418,24 @@ if (activeCamera instanceof THREE.PerspectiveCamera) {
   const fovY = THREE.MathUtils.degToRad(activeCamera.fov)
   const fovX = 2 * Math.atan(Math.tan(fovY / 2) * windowAspect)
 
-  console.log('[fitModelToView] Camera FOV (Y radians):', fovY)
-  console.log('[fitModelToView] Camera FOV (X radians):', fovX)
+  //console.log('[fitModelToView] Camera FOV (Y radians):', fovY)
+  //console.log('[fitModelToView] Camera FOV (X radians):', fovX)
 
   const halfW = (size.x * margin_p) / 2
   const halfH = (size.y * margin_p) / 2
 
-  console.log('[fitModelToView] Half dimensions with margin:', { halfW, halfH })
+  //console.log('[fitModelToView] Half dimensions with margin:', { halfW, halfH })
 
   const distForX = halfW / Math.tan(fovX / 2)
   const distForY = halfH / Math.tan(fovY / 2)
 
-  console.log('[fitModelToView] Required distances:', {
+  /*console.log('[fitModelToView] Required distances:', {
     distForX,
     distForY,
-  })
+  })*/
 
   const camDist = Math.max(distForX, distForY)
-  console.log('[fitModelToView] Chosen camera distance:', camDist)
+  //console.log('[fitModelToView] Chosen camera distance:', camDist)
 
   activeCamera.position.set(center.x, center.y, center.z + camDist)
   activeCamera.near = camDist * 0.01
@@ -445,7 +445,7 @@ if (activeCamera instanceof THREE.PerspectiveCamera) {
   activeCamera.lookAt(center)
   activeCamera.updateProjectionMatrix()
 
-  console.log('[fitModelToView] Perspective camera positioned at:', activeCamera.position)
+  //console.log('[fitModelToView] Perspective camera positioned at:', activeCamera.position)
 }
 
 
@@ -491,7 +491,7 @@ if (activeCamera instanceof THREE.PerspectiveCamera) {
    * -------------------------------------------------------- */
   controls?.target.copy(center)
   controls?.update()
-  
+
   // Обновляем интерфейс
   if (uiControls?.setRotationSliderValue) {
     isSliderInternalUpdate = true
@@ -500,7 +500,7 @@ if (activeCamera instanceof THREE.PerspectiveCamera) {
       isSliderInternalUpdate = false
     }, 0)
   }
-  console.log('[fitModelToView] complete, camera @', activeCamera.position)
+  //console.log('[fitModelToView] complete, camera @', activeCamera.position)
 }
 
 
@@ -523,7 +523,7 @@ export async function loadEnvironmentMap(
         scene.environment = envMap
         scene.background = envMap
         // Если хотите, можно очистить и от dispose
-        console.log('Environment map loaded')
+        //console.log('Environment map loaded')
         resolve()
       },
       undefined,
@@ -536,9 +536,9 @@ export async function loadEnvironmentMap(
 }
 
 export async function loadSceneModels(jsonUrl: string, canvasTexture: THREE.CanvasTexture) {
-  console.log('loadSceneModels, старт')
+  //console.log('loadSceneModels, старт')
   const models = await loadModelsFromJson(jsonUrl, canvasTexture)
-  console.log('loadSceneModels, модели загружены')
+  //console.log('loadSceneModels, модели загружены')
   models.forEach(model => {
     modelGroup.add(model)
   })
@@ -553,11 +553,11 @@ export async function loadSceneModels(jsonUrl: string, canvasTexture: THREE.Canv
   const tableDepth = size.x*6
   const tableWidth = size.x*6;
   const table = new Table(tableWidth, tableDepth, tableHeight, wallHeight); // ширина=100, глубина=10, высота=1
- 
+
   table.position.set(0, -size.y/2-tableHeight/2-tableHeight*0.03, tableDepth/3);
-  
+
   tableGroup.add(table);
-  
+
 }
 
 
@@ -568,7 +568,7 @@ function animate(time?: number) {
   requestAnimationFrame(animate)
 
   const t = (time ?? performance.now()) * 0.001;
-  
+
     modelGroup.traverse(child => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
