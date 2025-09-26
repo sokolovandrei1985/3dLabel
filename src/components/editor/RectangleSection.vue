@@ -45,14 +45,6 @@
 
 <script setup>
 import { computed } from 'vue';
-import {
-  Card as ACard,
-  FormItem as AFormItem,
-  ColorPicker as AColorPicker,
-  InputNumber as AInputNumber,
-  Select as ASelect,
-  SelectOption as ASelectOption
-} from 'ant-design-vue';
 
 const props = defineProps({
   fillColor: String,

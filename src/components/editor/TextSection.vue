@@ -38,15 +38,6 @@
 
 <script setup>
 import { computed } from 'vue';
-import {
-  Card as ACard,
-  FormItem as AFormItem,
-  Textarea as ATextarea,
-  Select as ASelect,
-  SelectOption as ASelectOption,
-  InputNumber as AInputNumber,
-  ColorPicker as AColorPicker
-} from 'ant-design-vue';
 
 const props = defineProps({
   text: String,

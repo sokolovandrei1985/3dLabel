@@ -18,7 +18,6 @@
 </template>
 
 <script setup>
-import { Card as ACard, Button as AButton } from 'ant-design-vue';
 
 defineEmits([
   'bring-to-front',

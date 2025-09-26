@@ -36,11 +36,6 @@
 
 <script setup>
 import { computed } from 'vue';
-import {
-  Card as ACard,
-  FormItem as AFormItem,
-  InputNumber as AInputNumber
-} from 'ant-design-vue';
 
 const props = defineProps({
   shadowSize: Number,

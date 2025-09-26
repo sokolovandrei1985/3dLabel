@@ -75,8 +75,6 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
     // Вызов для загрузки конфигурации из JSON (как у вас в сторе)
     await globalConfigStore.loadConfig();
 
-
-
     console.log('[Fabric] Канвас инициализирован:', fabricCanvas)
     return fabricCanvas
   } catch (err) {

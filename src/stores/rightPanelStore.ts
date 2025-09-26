@@ -24,7 +24,7 @@ export const useRightPanelStore = defineStore('rightPanelStore', () => {
   const activeCameraType = ref<CameraKey>('ortho')
   const rotationValue = ref<number>(0)
   const activeModelView = ref<ModelViewKey>('front')
-  const collapsed = ref<boolean>(false)
+  const collapsed = ref<boolean>(true)
 
   // Getters
   /*const isCameraDisabled = computed(() => (cameraType: CameraKey): boolean => {

@@ -1,6 +1,7 @@
 <!-- LeftPanel.vue -->
 <template>
   <div class="panel-wrapper">
+    <editor/>
     <a-tabs tab-position="top" v-model:activeKey="activeTab" class="custom-tabs">
       <a-tab-pane
         v-for="tab in leftTabs"
@@ -174,6 +175,7 @@ import { UploadOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons-
 //import { useFontLoader } from '@/composables/useFontLoader'
 import { loadFonts, families } from '@/composables/useFontLoader'
 import type { TabItem } from '@/types/tabs'
+import Editor from '@/components/editor'
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -232,8 +234,8 @@ const addRectangle = () => {
     top: (canvas.height ?? 0) / 2,
     width: size,
     height: size,
-    originX: 'center',
-    originY: 'center',
+    originX: 'left',
+    originY: 'top',
     fill: fillColor.value,
     stroke: strokeColor.value,
     strokeWidth: strokeWidth.value,
@@ -783,11 +785,15 @@ const onSaveImage = async () => {
   box-sizing: border-box;
 }
 .custom-tabs {
+  height: 100%;
+  /* TODO: временные стили для отладки */
+  overflow: auto;
+  height: 50vh;
+
   background-color: #ffffff;
   border-radius: 12px;
   padding: 8px;
   /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.08); */
-  height: 100%;
 }
 .custom-tabs > *:nth-child(2) {
   overflow-y: auto;

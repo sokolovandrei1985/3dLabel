@@ -19,7 +19,8 @@
     "lodash.throttle": "^4.1.1",
     "pinia": "^3.0.3",
     "three": "^0.178.0",
-    "vue": "^3.5.17"
+    "vue": "^3.5.17",
+    "vue-color": "^3.3.2"
   },
   "devDependencies": {
     "@types/lodash.throttle": "^4.1.9",
