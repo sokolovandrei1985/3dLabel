@@ -8,6 +8,7 @@ import { LineTypes } from '@/components/editor/constants'
 
 export const useFabricStore = defineStore('fabric', () => {
   const canvas = shallowRef<Canvas | null>(null)
+  const canvasSize = ref<{ width: number, height: number } | null>(null)
   const textureManager = shallowRef<FabricThreeTextureManager | null>(null)
   const activeObject = ref<FabricObject>(null)
 
@@ -18,8 +19,10 @@ export const useFabricStore = defineStore('fabric', () => {
   function setCanvas(newCanvas: Canvas | null) {
     canvas.value = newCanvas
     if (newCanvas) {
+      canvasSize.value = { width: newCanvas.width, height: newCanvas.height }
       subscribeCanvasEvents()
     } else {
+      canvasSize.value = null
       unsubscribeCanvasEvents()
     }
   }
@@ -136,6 +139,7 @@ export const useFabricStore = defineStore('fabric', () => {
 
   return {
     canvas,
+    canvasSize,
     textureManager,
     activeObject,
     getCanvas,

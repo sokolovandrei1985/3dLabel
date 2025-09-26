@@ -8,6 +8,7 @@
           placeholder="X"
           :controls="false"
           :min="0"
+          :max="canvasSize?.width || Infinity"
           class="coord-input"
         />
         <a-input-number
@@ -16,6 +17,7 @@
           placeholder="Y"
           :controls="false"
           :min="0"
+          :max="canvasSize?.height || Infinity"
           class="coord-input"
         />
       </div>
@@ -76,7 +78,7 @@ const update = (field: string, value: number): void => {
 }
 
 const store = useFabricStore()
-const { activeObject } = storeToRefs(store)
+const { activeObject, canvasSize } = storeToRefs(store)
 const left = computed({
   get: () => Math.round(activeObject.value.left),
   set: (value) => update('left', value)
