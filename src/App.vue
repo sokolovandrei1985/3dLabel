@@ -89,7 +89,7 @@ onMounted(() => {
 #container {
   padding: 8px;
   display: grid;
-  grid-template-columns: minmax(12rem, 1fr) 3fr auto;
+  grid-template-columns: minmax(18.5rem, 1fr) 5fr auto;
   column-gap: 8px;
   height: 100vh;
   width: 100vw;

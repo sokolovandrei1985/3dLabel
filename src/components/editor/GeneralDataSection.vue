@@ -1,6 +1,8 @@
 <template>
-  <a-card title="Общие данные" size="small" class="section-card">
-    <a-form-item label="Координаты">
+  <a-card size="small" class="section-card">
+    <div class="prop-grid">
+
+      <span>Координаты</span>
       <div class="coordinate-inputs">
         <a-input-number
           v-model:value="left"
@@ -21,9 +23,8 @@
           class="coord-input"
         />
       </div>
-    </a-form-item>
 
-    <a-form-item label="Размер">
+      <span>Размер</span>
       <div class="size-inputs">
         <a-input-number
           v-model:value="width"
@@ -42,25 +43,27 @@
           class="size-input"
         />
       </div>
-    </a-form-item>
 
-    <a-form-item label="Прозрачность">
-      <a-slider
-        v-model:value="opacity"
-        :min="0"
-        :max="100"
-        :step="1"
-      />
-      <a-input-number
-        v-model:value="opacity"
-        addon-after="%"
-        :controls="false"
-        :min="0"
-        :max="100"
-        :step="1"
-        class="opacity-input"
-      />
-    </a-form-item>
+      <span>Прозрачность</span>
+      <div class="opacity-inputs">
+        <a-slider
+          v-model:value="opacity"
+          :min="0"
+          :max="100"
+          :step="1"
+          class="opacity-input"
+        />
+        <a-input-number
+          v-model:value="opacity"
+          addon-after="%"
+          :controls="false"
+          :min="0"
+          :max="100"
+          :step="1"
+          class="opacity-input"
+        />
+      </div>
+    </div>
   </a-card>
 </template>
 
@@ -79,6 +82,7 @@ const update = (field: string, value: number): void => {
 
 const store = useFabricStore()
 const { activeObject, canvasSize } = storeToRefs(store)
+
 const left = computed({
   get: () => Math.round(activeObject.value.left),
   set: (value) => update('left', value)
@@ -106,18 +110,23 @@ const opacity = computed({
 </script>
 
 <style scoped>
+.prop-grid {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
 .coordinate-inputs,
-.size-inputs {
+.size-inputs,
+.opacity-inputs {
   display: flex;
   gap: 8px;
 }
 
 .coord-input,
-.size-input {
-  flex: 1;
-}
-
+.size-input,
 .opacity-input {
-  width: 100%;
+  flex: 1;
 }
 </style>

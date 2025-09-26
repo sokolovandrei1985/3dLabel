@@ -10,6 +10,17 @@
       @update="updateObject"
     />
 
+    <!-- Прямоугольник -->
+    <RectangleSection
+      v-if="type === 'rect'"
+      @update="updateObject"
+    />
+
+    <!-- Текст -->
+    <TextSection
+      v-if="type === 'text'"
+    />
+
     <!-- Тени -->
     <ShadowSection
       v-if="!!type"
@@ -22,16 +33,6 @@
       @send-to-back="$emit('send-to-back')"
       @bring-forward="$emit('bring-forward')"
       @send-backward="$emit('send-backward')"
-    />
-
-    <!-- Прямоугольник -->
-    <RectangleSection
-      v-if="type === 'rect'"
-    />
-
-    <!-- Текст -->
-    <TextSection
-      v-if="type === 'text'"
     />
   </a-form>
 </template>
@@ -55,7 +56,6 @@ const { updateActiveObject } = store
 const type = computed(() => activeObject.value?.type || null)
 
 const updateObject = (obj: object) => {
-  console.log(obj)
   updateActiveObject(obj)
 }
 
@@ -65,6 +65,7 @@ const updateObject = (obj: object) => {
 .element-editor {
   font-size: 12px;
   height: 50vh;
+  min-width: 300px;
   overflow: auto;
   background: #f5f5f5;
 }
@@ -77,6 +78,14 @@ const updateObject = (obj: object) => {
   border-radius: 0;
   border-bottom: 0;
 }
+
+.element-editor:deep(.ant-card .ant-input-number-group-addon) {
+  padding: 0px 8px;
+}
+
+/*.element-editor:deep(.ant-card .ant-card-body) {
+  padding: 10px;
+}*/
 
 .element-editor:deep(.ant-card:first-child) {
   border-top-left-radius: 8px;

@@ -11,6 +11,7 @@ export const useFabricStore = defineStore('fabric', () => {
   const canvasSize = ref<{ width: number, height: number } | null>(null)
   const textureManager = shallowRef<FabricThreeTextureManager | null>(null)
   const activeObject = ref<FabricObject>(null)
+  //const rawActiveObject = ref<any>(null)
 
   function getCanvas(): Canvas | null {
     return canvas.value
@@ -39,6 +40,8 @@ export const useFabricStore = defineStore('fabric', () => {
     if (!canvas.value) return
     const canvasActiveObject: any = canvas.value.getActiveObject()
     if (!canvasActiveObject) return
+    console.log(canvasActiveObject)
+    //rawActiveObject.value = canvasActiveObject
     const { type, aCoords, shadow, angle, opacity, fill, stroke, strokeWidth, strokeDashArray, rx, ry, fontFamily, fontSize, text } = canvasActiveObject
 
     const left = aCoords.tl.x
@@ -53,20 +56,20 @@ export const useFabricStore = defineStore('fabric', () => {
       offsetY: shadow.offsetY
     }
 
-    let borderStyle
+    let strokeStyle
     if (!strokeDashArray?.length) {
-      borderStyle = LineTypes.solid
+      strokeStyle = LineTypes.solid
     } else if (Array.isArray(strokeDashArray)) {
       const dashArrayStr = JSON.stringify(strokeDashArray)
       if (dashArrayStr === LineTypes.dashed) {
-        borderStyle = LineTypes.dashed
+        strokeStyle = LineTypes.dashed
       } else if (dashArrayStr === LineTypes.dashdot) {
-        borderStyle = LineTypes.dashdot
+        strokeStyle = LineTypes.dashdot
       } else {
-        borderStyle = 'custom'
+        strokeStyle = 'custom'
       }
     } else {
-      borderStyle = 'custom'
+      strokeStyle = 'custom'
     }
 
     const params = {
@@ -78,10 +81,10 @@ export const useFabricStore = defineStore('fabric', () => {
       angle,
       opacity,
       shadow: shadowObj,
-      color: fill,
-      borderColor: stroke,
-      borderWidth: strokeWidth,
-      borderStyle,
+      fill,
+      stroke,
+      strokeWidth,
+      strokeStyle,
       borderRadius: rx ?? ry ?? 0,
       text,
       fontFamily,
@@ -94,13 +97,14 @@ export const useFabricStore = defineStore('fabric', () => {
 
   function clearSelection(): void {
     activeObject.value = null
+    //rawActiveObject.value = null
   }
 
   function updateActiveObject(obj: any): void {
     if (!canvas.value) return
     const actObj: any = canvas.value.getActiveObject()
     if (actObj) {
-      console.log(obj)
+      //console.log(obj)
       const { left, top, ...objProps } = obj
       if (left != null) actObj.setX(left)
       if (top != null) actObj.setY(top)
@@ -115,7 +119,7 @@ export const useFabricStore = defineStore('fabric', () => {
     if (canvas.value) {
       canvas.value.on('selection:created', updateSelection)
       canvas.value.on('selection:updated', updateSelection)
-      canvas.value.on('selection:cleared', () => clearSelection)
+      canvas.value.on('selection:cleared', clearSelection)
       canvas.value.on('object:modified', updateSelection)
       canvas.value.on('object:added', updateSelection)
       canvas.value.on('object:moving', updateSelection)
@@ -128,7 +132,7 @@ export const useFabricStore = defineStore('fabric', () => {
     if (canvas.value) {
       canvas.value.off('selection:created', updateSelection)
       canvas.value.off('selection:updated', updateSelection)
-      canvas.value.off('selection:cleared', () => clearSelection)
+      canvas.value.off('selection:cleared', clearSelection)
       canvas.value.off('object:modified', updateSelection)
       canvas.value.off('object:added', updateSelection)
       canvas.value.off('object:moving', updateSelection)
@@ -142,6 +146,7 @@ export const useFabricStore = defineStore('fabric', () => {
     canvasSize,
     textureManager,
     activeObject,
+    //rawActiveObject,
     getCanvas,
     setCanvas,
     getTextureManager,

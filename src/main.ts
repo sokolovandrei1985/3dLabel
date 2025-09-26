@@ -7,6 +7,7 @@ import 'ant-design-vue/dist/reset.css'
 // import { useFontManager } from './services/useFontManager'
 // import { useThreeScene } from './services/useThreeScene'
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons-vue'
+import 'vue-color/style.css'
 
 const app = createApp(App)
 app.use(Antd)

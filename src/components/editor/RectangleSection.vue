@@ -1,17 +1,11 @@
 <template>
-  <a-card title="Прямоугольник" size="small" class="section-card">
+  <a-card size="small" class="section-card">
     <a-form-item label="Цвет заливки">
-      <a-color-picker
-        v-model:value="fillColor"
-        format="hex"
-      />
+      <ColorPicker v-model="fill" />
     </a-form-item>
 
     <a-form-item label="Цвет границы">
-      <a-color-picker
-        v-model:value="borderColor"
-        format="hex"
-      />
+      <ColorPicker v-model="stroke" />
     </a-form-item>
 
     <a-form-item label="Толщина границы">
@@ -43,47 +37,45 @@
   </a-card>
 </template>
 
-<script setup>
-import { computed } from 'vue';
-
-const props = defineProps({
-  fillColor: String,
-  borderColor: String,
-  borderWidth: Number,
-  borderStyle: String,
-  borderRadius: Number
-});
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useFabricStore } from '@/stores/fabric'
+import { storeToRefs } from 'pinia'
+import ColorPicker from './ColorPicker.vue'
 
 const emit = defineEmits([
-  'update:fillColor',
-  'update:borderColor',
-  'update:borderWidth',
-  'update:borderStyle',
-  'update:borderRadius'
-]);
+  'update'
+])
 
-const fillColor = computed({
-  get: () => props.fillColor,
-  set: (value) => emit('update:fillColor', value)
-});
+const update = (field: string, value: number): void => {
+  emit('update', { [field]: value })
+}
 
-const borderColor = computed({
-  get: () => props.borderColor,
-  set: (value) => emit('update:borderColor', value)
-});
+const store = useFabricStore()
+const { activeObject } = storeToRefs(store)
+
+const fill = computed({
+  get: () => activeObject.value.fill,
+  set: (value) => update('fill', value)
+})
+
+const stroke = computed({
+  get: () => activeObject.value.stroke,
+  set: (value) => update('stroke', value)
+})
 
 const borderWidth = computed({
-  get: () => props.borderWidth,
+  get: () => activeObject.value.borderWidth,
   set: (value) => emit('update:borderWidth', value)
-});
+})
 
 const borderStyle = computed({
-  get: () => props.borderStyle,
+  get: () => activeObject.value.borderStyle,
   set: (value) => emit('update:borderStyle', value)
-});
+})
 
 const borderRadius = computed({
-  get: () => props.borderRadius,
+  get: () => activeObject.value.borderRadius,
   set: (value) => emit('update:borderRadius', value)
-});
+})
 </script>

@@ -9,7 +9,7 @@ interface BaseProp {
 }
 
 interface ShadowProp {
-  color: string
+  fill: string
   blur: number
   offsetX: number
   offsetY: number
@@ -22,10 +22,10 @@ interface SingleProp {
 }
 
 interface RectangleProp {
-  color: string
-  borderColor: string
-  borderWidth: number
-  borderStyle: string
+  fill: string
+  stroke: string
+  strokeWidth: number
+  strokeStyle: string
   borderRadius: number
 }
 
@@ -33,7 +33,7 @@ interface TextProp {
   text: string
   fontFamily: string
   fontSize: number
-  color: string
+  fill: string
 }
 
 export interface IGroup extends BaseProp {
@@ -96,18 +96,18 @@ export class Image extends SingleObject implements IImage {
 
 // Класс Rect
 export class Rect extends SingleObject implements IRect {
-  color: string
-  borderColor: string
-  borderWidth: number
-  borderStyle: string
+  fill: string
+  stroke: string
+  strokeWidth: number
+  strokeStyle: string
   borderRadius: number
 
   constructor(params: IRect) {
     super(params)
-    this.color = params.color
-    this.borderColor = params.borderColor
-    this.borderWidth = params.borderWidth
-    this.borderStyle = params.borderStyle
+    this.fill = params.fill
+    this.stroke = params.stroke
+    this.strokeWidth = params.strokeWidth
+    this.strokeStyle = params.strokeStyle
     this.borderRadius = params.borderRadius
   }
 }
@@ -117,14 +117,14 @@ export class Text extends SingleObject implements IText {
   text: string
   fontFamily: string
   fontSize: number
-  color: string
+  fill: string
 
   constructor(params: IText) {
     super(params)
     this.text = params.text
     this.fontFamily = params.fontFamily
     this.fontSize = params.fontSize
-    this.color = params.color
+    this.fill = params.fill
   }
 }
 
