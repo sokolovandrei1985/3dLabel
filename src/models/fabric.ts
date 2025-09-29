@@ -26,7 +26,7 @@ interface RectangleProp {
   stroke: string
   strokeWidth: number
   strokeStyle: string
-  borderRadius: number
+  strokeRadius: number
 }
 
 interface TextProp {
@@ -100,7 +100,7 @@ export class Rect extends SingleObject implements IRect {
   stroke: string
   strokeWidth: number
   strokeStyle: string
-  borderRadius: number
+  strokeRadius: number
 
   constructor(params: IRect) {
     super(params)
@@ -108,7 +108,7 @@ export class Rect extends SingleObject implements IRect {
     this.stroke = params.stroke
     this.strokeWidth = params.strokeWidth
     this.strokeStyle = params.strokeStyle
-    this.borderRadius = params.borderRadius
+    this.strokeRadius = params.strokeRadius
   }
 }
 
@@ -128,7 +128,7 @@ export class Text extends SingleObject implements IText {
   }
 }
 
-export type FabricObject = IGroup | IImage | IRect | IText | null
+export type FabricObject = Partial<IGroup> & Partial<IImage> & Partial<IRect> & Partial<IText> | null
 
 export class FabricObjectFactory {
   static createObject(params: any): FabricObject {

@@ -1,5 +1,17 @@
 export const LineTypes = {
-  solid: 'none',          // сплошная
-  dashed: '[5,5]',        // пунктир
-  dashdot: '[10,5,2,5]'   // штрих-пунктир
+  solid: {
+    key:'solid',
+    title: 'Сплошная',
+    value: null
+  },
+  dashed: {
+    key: 'dashed',
+    title: 'Пунктир',
+    value: [5, 5]
+  },
+  dashdot: {
+    key: 'dashdot',
+    title: 'Штрих-пунктир',
+    value: [10, 5, 2, 5]
+  }
 }

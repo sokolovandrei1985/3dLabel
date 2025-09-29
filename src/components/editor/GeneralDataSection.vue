@@ -44,6 +44,20 @@
         />
       </div>
 
+      <span>Угол поворота</span>
+      <div class="angle-inputs">
+        <div class="angle-input" />
+        <a-input-number
+          v-model:value="angle"
+          addon-after="°"
+          placeholder="Угол поворота"
+          :controls="false"
+          :min="0"
+          :max="360"
+          class="angle-input"
+        />
+      </div>
+
       <span>Прозрачность</span>
       <div class="opacity-inputs">
         <a-slider
@@ -51,7 +65,7 @@
           :min="0"
           :max="100"
           :step="1"
-          class="opacity-input"
+          class="opacity-input opacity-slider"
         />
         <a-input-number
           v-model:value="opacity"
@@ -84,27 +98,32 @@ const store = useFabricStore()
 const { activeObject, canvasSize } = storeToRefs(store)
 
 const left = computed({
-  get: () => Math.round(activeObject.value.left),
+  get: () => Math.round(activeObject.value?.left || 0),
   set: (value) => update('left', value)
 })
 
 const top = computed({
-  get: () => Math.round(activeObject.value.top),
+  get: () => Math.round(activeObject.value?.top || 0),
   set: (value) => update('top', value)
 })
 
 const width = computed({
-  get: () => Math.round(activeObject.value.width),
+  get: () => Math.round(activeObject.value?.width || 0),
   set: (value) => update('width', value)
 })
 
 const height = computed({
-  get: () => Math.round(activeObject.value.height),
+  get: () => Math.round(activeObject.value?.height || 0),
   set: (value) => update('height', value)
 })
 
+const angle = computed({
+  get: () => Math.round(activeObject.value?.angle || 0),
+  set: (value) => update('angle', value)
+})
+
 const opacity = computed({
-  get: () => 100 - Math.round(activeObject.value.opacity * 100),
+  get: () => 100 - Math.round((activeObject.value?.opacity ?? 0) * 100),
   set: (value) => update('opacity', Math.round(100 - value) / 100)
 })
 </script>
@@ -119,14 +138,20 @@ const opacity = computed({
 
 .coordinate-inputs,
 .size-inputs,
-.opacity-inputs {
+.opacity-inputs,
+.angle-inputs {
   display: flex;
   gap: 8px;
 }
 
 .coord-input,
 .size-input,
-.opacity-input {
+.opacity-input,
+.angle-input {
   flex: 1;
+}
+
+.opacity-slider {
+  margin: 6px 0;
 }
 </style>

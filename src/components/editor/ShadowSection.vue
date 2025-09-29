@@ -1,5 +1,5 @@
 <template>
-  <a-card title="Тени" size="small" class="section-card">
+  <a-card size="small" class="section-card">
     <a-form-item label="Размер тени">
       <a-input-number
         v-model:value="shadowSize"
@@ -8,29 +8,45 @@
       />
     </a-form-item>
 
-    <a-form-item label="Резкость тени">
-      <a-input-number
-        v-model:value="shadowBlur"
-        :min="0"
-        :max="50"
-      />
-    </a-form-item>
-
-    <a-form-item label="Смещение по горизонтали">
-      <a-input-number
+    <span>Смещение по горизонтали</span>
+    <div class="opacity-inputs">
+      <a-slider
         v-model:value="shadowOffsetX"
         :min="-50"
         :max="50"
+        :step="1"
+        class="opacity-input opacity-slider"
       />
-    </a-form-item>
-
-    <a-form-item label="Смещение по вертикали">
       <a-input-number
+        v-model:value="shadowOffsetX"
+        addon-after="px"
+        :controls="false"
+        :min="-50"
+        :max="50"
+        :step="1"
+        class="opacity-input"
+      />
+    </div>
+
+    <span>Смещение по вертикали</span>
+    <div class="opacity-inputs">
+      <a-slider
         v-model:value="shadowOffsetY"
         :min="-50"
         :max="50"
+        :step="1"
+        class="opacity-input opacity-slider"
       />
-    </a-form-item>
+      <a-input-number
+        v-model:value="shadowOffsetY"
+        addon-after="px"
+        :controls="false"
+        :min="-50"
+        :max="50"
+        :step="1"
+        class="opacity-input"
+      />
+    </div>
   </a-card>
 </template>
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
+import { Point } from 'fabric'
 import type { Canvas } from 'fabric'
 import type { FabricObject } from '@/models/fabric'
 import { FabricObjectFactory } from '@/models/fabric'
@@ -42,12 +43,13 @@ export const useFabricStore = defineStore('fabric', () => {
     if (!canvasActiveObject) return
     console.log(canvasActiveObject)
     //rawActiveObject.value = canvasActiveObject
-    const { type, aCoords, shadow, angle, opacity, fill, stroke, strokeWidth, strokeDashArray, rx, ry, fontFamily, fontSize, text } = canvasActiveObject
+    const { type, /*left, top,*/ width, height, shadow, angle, opacity, fill, stroke, strokeWidth, strokeDashArray, rx, ry, fontFamily, fontSize, text } = canvasActiveObject
 
-    const left = aCoords.tl.x
+    const originCoords = canvasActiveObject.getPointByOrigin('left', 'top')
+    /*const left = aCoords.tl.x
     const top = aCoords.tl.y
     const width = aCoords.tr.x - left
-    const height = aCoords.bl.y - top
+    const height = aCoords.bl.y - top*/
 
     const shadowObj = !shadow ? null : {
       color: shadow.color,
@@ -58,24 +60,24 @@ export const useFabricStore = defineStore('fabric', () => {
 
     let strokeStyle
     if (!strokeDashArray?.length) {
-      strokeStyle = LineTypes.solid
+      strokeStyle = LineTypes.solid.key
     } else if (Array.isArray(strokeDashArray)) {
       const dashArrayStr = JSON.stringify(strokeDashArray)
-      if (dashArrayStr === LineTypes.dashed) {
-        strokeStyle = LineTypes.dashed
-      } else if (dashArrayStr === LineTypes.dashdot) {
-        strokeStyle = LineTypes.dashdot
+      if (dashArrayStr === JSON.stringify(LineTypes.dashed.value)) {
+        strokeStyle = LineTypes.dashed.key
+      } else if (dashArrayStr === JSON.stringify(LineTypes.dashdot.value)) {
+        strokeStyle = LineTypes.dashdot.key
       } else {
-        strokeStyle = 'custom'
+        strokeStyle = LineTypes.solid.key
       }
     } else {
-      strokeStyle = 'custom'
+      strokeStyle = LineTypes.solid.key
     }
 
     const params = {
       type: type === 'activeselection' ? 'group' : type,
-      left,
-      top,
+      left: originCoords.x,
+      top: originCoords.y,
       width,
       height,
       angle,
@@ -85,7 +87,7 @@ export const useFabricStore = defineStore('fabric', () => {
       stroke,
       strokeWidth,
       strokeStyle,
-      borderRadius: rx ?? ry ?? 0,
+      strokeRadius: rx ?? ry ?? 0,
       text,
       fontFamily,
       fontSize
@@ -105,12 +107,25 @@ export const useFabricStore = defineStore('fabric', () => {
     const actObj: any = canvas.value.getActiveObject()
     if (actObj) {
       //console.log(obj)
-      const { left, top, ...objProps } = obj
-      if (left != null) actObj.setX(left)
-      if (top != null) actObj.setY(top)
+      const { left, top, strokeRadius, ...objProps } = obj
+      // Координаты
+      if (left != null || top != null) {
+        const x = left ?? actObj.left
+        const y = top ?? actObj.top
+        actObj.setXY(new Point(x, y), left != null ? 'left' : 'center', top != null ? 'top' : 'center')
+      }
+      // Тип границы
+      /*if (strokeStyle) {
+        const strokeDashArray = LineTypes[strokeStyle]?.value || null
+        actObj.set({ strokeDashArray })
+      }*/
+      if (strokeRadius != null) {
+        actObj.set({ rx: strokeRadius, ry: strokeRadius })
+      }
       actObj.set(objProps)
-      if (obj.top != null || obj.left != null || obj.angle != null) actObj.setCoords()
-      canvas.value.requestRenderAll()
+      //if (obj.top != null || obj.left != null || obj.angle != null) actObj.setCoords()
+      actObj.setCoords()
+      canvas.value.renderAll()
       canvas.value.fire('object:modified', { target: actObj })
     }
   }

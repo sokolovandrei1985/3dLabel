@@ -234,14 +234,16 @@ const addRectangle = () => {
     top: (canvas.height ?? 0) / 2,
     width: size,
     height: size,
-    originX: 'left',
-    originY: 'top',
+    originX: 'center',
+    originY: 'center',
     fill: fillColor.value,
     stroke: strokeColor.value,
     strokeWidth: strokeWidth.value,
     strokeDashArray: strokeDashArray.value,
     strokeUniform: true,
     selectable: true,
+    centeredRotation: true,
+    centeredScaling: true,
     rx: borderRadius.value,
     ry: borderRadius.value
   })

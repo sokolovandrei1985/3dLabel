@@ -1,39 +1,35 @@
 <template>
   <a-card size="small" class="section-card">
-    <a-form-item label="Цвет заливки">
-      <ColorPicker v-model="fill" />
-    </a-form-item>
+    <div class="prop-grid">
+      <span>Цвет заливки</span>
+      <ColorPicker v-model="fill" :formats="['hex']" :disableAlpha="true" />
 
-    <a-form-item label="Цвет границы">
-      <ColorPicker v-model="stroke" />
-    </a-form-item>
-
-    <a-form-item label="Толщина границы">
+      <span>Толщина границы</span>
       <a-input-number
-        v-model:value="borderWidth"
+        v-model:value="strokeWidth"
         :min="0"
         :max="20"
         addon-after="px"
       />
-    </a-form-item>
 
-    <a-form-item label="Тип линии">
-      <a-select v-model:value="borderStyle">
-        <a-select-option value="solid">Solid</a-select-option>
-        <a-select-option value="dashed">Dashed</a-select-option>
-        <a-select-option value="dotted">Dotted</a-select-option>
-        <a-select-option value="double">Double</a-select-option>
+      <span>Цвет границы</span>
+      <ColorPicker v-model="stroke" :disabled="borderDisabled" :formats="['hex']" :disableAlpha="true"/>
+
+      <span>Тип линии границы</span>
+      <a-select v-model:value="strokeStyle" :disabled="borderDisabled">
+        <a-select-option v-for="lt in LineTypes" :key="lt.key" :value="lt.key">
+          {{ lt.title }}
+        </a-select-option>
       </a-select>
-    </a-form-item>
 
-    <a-form-item label="Скругление углов">
+      <span>Скругление углов</span>
       <a-input-number
         v-model:value="borderRadius"
         :min="0"
         :max="100"
         addon-after="px"
       />
-    </a-form-item>
+    </div>
   </a-card>
 </template>
 
@@ -42,6 +38,7 @@ import { computed } from 'vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
 import ColorPicker from './ColorPicker.vue'
+import { LineTypes } from './constants'
 
 const emit = defineEmits([
   'update'
@@ -55,27 +52,39 @@ const store = useFabricStore()
 const { activeObject } = storeToRefs(store)
 
 const fill = computed({
-  get: () => activeObject.value.fill,
+  get: () => activeObject.value?.fill,
   set: (value) => update('fill', value)
 })
 
 const stroke = computed({
-  get: () => activeObject.value.stroke,
+  get: () => activeObject.value?.stroke,
   set: (value) => update('stroke', value)
 })
 
-const borderWidth = computed({
-  get: () => activeObject.value.borderWidth,
-  set: (value) => emit('update:borderWidth', value)
+const strokeWidth = computed({
+  get: () => activeObject.value?.strokeWidth,
+  set: (value) => update('strokeWidth', value)
 })
 
-const borderStyle = computed({
-  get: () => activeObject.value.borderStyle,
-  set: (value) => emit('update:borderStyle', value)
+const strokeStyle = computed({
+  get: () => activeObject.value?.strokeStyle,
+  set: (value) => update('strokeDashArray', LineTypes[value]?.value || null)
 })
 
 const borderRadius = computed({
-  get: () => activeObject.value.borderRadius,
-  set: (value) => emit('update:borderRadius', value)
+  get: () => activeObject.value?.strokeRadius,
+  set: (value) => update('strokeRadius', value)
 })
+
+const borderDisabled = computed(() => (!activeObject.value?.strokeWidth))
 </script>
+
+<style scoped>
+.prop-grid {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 2fr 3fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+</style>
