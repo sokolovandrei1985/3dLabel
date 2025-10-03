@@ -1,6 +1,7 @@
 <template>
-  <div class="color-picker">
+  <div class="color-picker" :class="{ disabled: props.disabled }">
     <a-input
+      v-show="!hideInput"
       :value="inputValue"
       class="color-picker-input"
       :disabled="props.disabled"
@@ -27,23 +28,17 @@ interface ColorPickerProps {
   disableAlpha?: boolean
   formats?: string[]
   disabled?: boolean
+  hideInput?: boolean
 }
 
 const props = withDefaults(defineProps<ColorPickerProps>(), {
   disableAlpha: false,
   formats: () => ['rgb', 'hex', 'hsl'],
-  disabled: false
+  disabled: false,
+  hideInput: false
 });
 
 const visibleEditor = ref<boolean>(false)
-
-/*const props = defineProps({
-  color: String
-})
-
-const emit = defineEmits([
-  'change'
-])*/
 
 const color = defineModel<string>()
 const inputValue = ref<string | undefined>(color.value)
@@ -69,6 +64,10 @@ const handleConfirm = (): void => {
 .color-picker {
   display: flex;
   gap: 8px;
+}
+
+.color-picker.disabled {
+  cursor: not-allowed;
 }
 
 .color-picker-input,

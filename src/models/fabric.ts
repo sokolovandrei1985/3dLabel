@@ -1,4 +1,4 @@
-export type ObjectType = 'image' | 'rect' | 'text' | 'group'
+export type ObjectType = 'image' | 'rect' | 'textbox' | 'group'
 
 interface BaseProp {
   type: ObjectType
@@ -8,8 +8,8 @@ interface BaseProp {
   height: number
 }
 
-interface ShadowProp {
-  fill: string
+export interface IShadow {
+  color: string
   blur: number
   offsetX: number
   offsetY: number
@@ -18,14 +18,14 @@ interface ShadowProp {
 interface SingleProp {
   angle: number | null
   opacity: number | null
-  shadow: ShadowProp | null
+  shadow: IShadow | null
 }
 
 interface RectangleProp {
   fill: string
   stroke: string
   strokeWidth: number
-  strokeStyle: string
+  strokeStyle: string | number[] | null
   strokeRadius: number
 }
 
@@ -67,7 +67,7 @@ class BaseObject implements BaseProp {
 class SingleObject extends BaseObject implements SingleProp {
   angle: number | null
   opacity: number | null
-  shadow: ShadowProp | null
+  shadow: IShadow | null
 
   constructor(params: BaseProp & SingleProp) {
     super(params)
@@ -99,7 +99,7 @@ export class Rect extends SingleObject implements IRect {
   fill: string
   stroke: string
   strokeWidth: number
-  strokeStyle: string
+  strokeStyle: string | number[] | null
   strokeRadius: number
 
   constructor(params: IRect) {
@@ -137,7 +137,7 @@ export class FabricObjectFactory {
         return new Image(params)
       case 'rect':
         return new Rect(params)
-      case 'text':
+      case 'textbox':
         return new Text(params)
       case 'group':
         return new Group(params)

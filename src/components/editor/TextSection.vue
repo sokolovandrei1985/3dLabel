@@ -1,5 +1,5 @@
 <template>
-  <a-card title="Текст" size="small" class="section-card">
+  <a-card size="small" class="section-card">
     <a-form-item label="Текст">
       <a-textarea
         v-model:value="text"
@@ -8,68 +8,76 @@
       />
     </a-form-item>
 
-    <a-form-item label="Шрифт">
+    <div class="prop-grid">
+      <span>Шрифт</span>
       <a-select v-model:value="fontFamily">
-        <a-select-option value="Arial">Arial</a-select-option>
-        <a-select-option value="Times New Roman">Times New Roman</a-select-option>
-        <a-select-option value="Verdana">Verdana</a-select-option>
-        <a-select-option value="Georgia">Georgia</a-select-option>
-        <a-select-option value="Courier New">Courier New</a-select-option>
+        <a-select-option v-for="f in fontOptions" :key="f" :value="f">{{ f }}</a-select-option>
       </a-select>
-    </a-form-item>
 
-    <a-form-item label="Размер шрифта">
+      <span>Размер шрифта</span>
       <a-input-number
         v-model:value="fontSize"
         :min="8"
         :max="72"
         addon-after="px"
       />
-    </a-form-item>
 
-    <a-form-item label="Цвет текста">
-      <a-color-picker
-        v-model:value="textColor"
-        format="hex"
-      />
-    </a-form-item>
+      <span>Цвет текста</span>
+      <ColorPicker v-model="fill" :formats="['hex']" :disableAlpha="true"/>
+    </div>
   </a-card>
 </template>
 
-<script setup>
-import { computed } from 'vue';
-
-const props = defineProps({
-  text: String,
-  fontFamily: String,
-  fontSize: Number,
-  textColor: String
-});
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useFabricStore } from '@/stores/fabric'
+import { storeToRefs } from 'pinia'
+import ColorPicker from './ColorPicker.vue'
+import { loadFonts, families } from '@/composables/useFontLoader'
 
 const emit = defineEmits([
-  'update:text',
-  'update:fontFamily',
-  'update:fontSize',
-  'update:textColor'
-]);
+  'update'
+])
+
+const update = (field: string, value: number | string | undefined | null): void => {
+  emit('update', { [field]: value })
+}
+
+const store = useFabricStore()
+const { activeObject } = storeToRefs(store)
+
+const fontOptions = ref<string[]>([])
+loadFonts().then(() => {
+  fontOptions.value = families
+})
 
 const text = computed({
-  get: () => props.text,
-  set: (value) => emit('update:text', value)
+  get: () => activeObject.value?.text,
+  set: (value) => update('text', value)
 });
 
 const fontFamily = computed({
-  get: () => props.fontFamily,
-  set: (value) => emit('update:fontFamily', value)
+  get: () => activeObject.value?.fontFamily,
+  set: (value) => update('fontFamily', value)
 });
 
 const fontSize = computed({
-  get: () => props.fontSize,
-  set: (value) => emit('update:fontSize', value)
+  get: () => activeObject.value?.fontSize,
+  set: (value) => update('fontSize', value)
 });
 
-const textColor = computed({
-  get: () => props.textColor,
-  set: (value) => emit('update:textColor', value)
+const fill = computed({
+  get: () => activeObject.value?.fill,
+  set: (value) => update('fill', value)
 });
 </script>
+
+<style scoped>
+.prop-grid {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 2fr 3fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+</style>

@@ -17,7 +17,7 @@
 
       <span>Тип линии границы</span>
       <a-select v-model:value="strokeStyle" :disabled="borderDisabled">
-        <a-select-option v-for="lt in LineTypes" :key="lt.key" :value="lt.key">
+        <a-select-option v-for="lt in LINE_TYPES" :key="lt.key" :value="lt.key">
           {{ lt.title }}
         </a-select-option>
       </a-select>
@@ -38,13 +38,14 @@ import { computed } from 'vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
 import ColorPicker from './ColorPicker.vue'
-import { LineTypes } from './constants'
+import { LINE_TYPES } from './constants'
+import type { LineType } from './constants'
 
 const emit = defineEmits([
   'update'
 ])
 
-const update = (field: string, value: number): void => {
+const update = (field: string, value: number | number[] | string | undefined | null): void => {
   emit('update', { [field]: value })
 }
 
@@ -68,7 +69,10 @@ const strokeWidth = computed({
 
 const strokeStyle = computed({
   get: () => activeObject.value?.strokeStyle,
-  set: (value) => update('strokeDashArray', LineTypes[value]?.value || null)
+  set: (value) => {
+    const lt = (value ?? 'solid') as LineType
+    update('strokeDashArray', LINE_TYPES[lt]?.value || null)
+  }
 })
 
 const borderRadius = computed({

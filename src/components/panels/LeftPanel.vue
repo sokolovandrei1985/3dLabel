@@ -448,7 +448,7 @@ function updateShadow(params: {
   { immediate: true }
 )*/
 
-watch(shadowBlur, (val) => {
+/*watch(shadowBlur, (val) => {
   const obj = fabricStore.canvas?.getActiveObject()
   if (obj) updateShadow({ blur: val })
 })
@@ -467,7 +467,7 @@ watch(shadowOffsetY, (val) => {
 
 watch(strokeDashString, (newValue) => {
   console.log('strokeDashString изменен на:', newValue)
-})
+})*/
 
 function updateUIFromActiveObject(obj: FabricObject | null) {
   if (!obj) {
@@ -790,7 +790,7 @@ const onSaveImage = async () => {
   height: 100%;
   /* TODO: временные стили для отладки */
   overflow: auto;
-  height: 50vh;
+  height: 30vh;
 
   background-color: #ffffff;
   border-radius: 12px;

@@ -4,6 +4,9 @@
     layout="horizontal"
     class="element-editor"
   >
+    <AddObject />
+
+    <a-divider style="margin: 0">Параметры объекта</a-divider>
     <!-- Общие данные -->
     <GeneralDataSection
       v-if="!!type"
@@ -18,12 +21,14 @@
 
     <!-- Текст -->
     <TextSection
-      v-if="type === 'text'"
+      v-if="type === 'textbox'"
+      @update="updateObject"
     />
 
     <!-- Тени -->
     <ShadowSection
       v-if="!!type"
+      @update="updateObject"
     />
 
     <!-- Расположение -->
@@ -38,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits } from 'vue'
+//import { defineEmits } from 'vue'
 
 // Компоненты секций
 import GeneralDataSection from './GeneralDataSection.vue'
@@ -46,6 +51,7 @@ import ShadowSection from './ShadowSection.vue'
 import LayerSection from './LayerSection.vue'
 import RectangleSection from './RectangleSection.vue'
 import TextSection from './TextSection.vue'
+import AddObject from './AddObject.vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -64,10 +70,10 @@ const updateObject = (obj: object) => {
 <style scoped>
 .element-editor {
   font-size: 12px;
-  height: 50vh;
+  height: 70vh;
   min-width: 300px;
   overflow: auto;
-  background: #f5f5f5;
+  background: white;
 }
 
 .element-editor:deep(.ant-form-item) {
@@ -76,16 +82,12 @@ const updateObject = (obj: object) => {
 
 .element-editor:deep(.ant-card) {
   border-radius: 0;
-  border-bottom: 0;
+  border: 0;
 }
 
 .element-editor:deep(.ant-card .ant-input-number-group-addon) {
   padding: 0px 8px;
 }
-
-/*.element-editor:deep(.ant-card .ant-card-body) {
-  padding: 10px;
-}*/
 
 .element-editor:deep(.ant-card:first-child) {
   border-top-left-radius: 8px;
