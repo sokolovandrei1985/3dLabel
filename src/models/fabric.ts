@@ -36,11 +36,15 @@ interface TextProp {
   fill: string
 }
 
+interface ImageProp {
+  fileName: string
+}
+
 export interface IGroup extends BaseProp {
   size: number
 }
 
-export interface IImage extends BaseProp, SingleProp {}
+export interface IImage extends BaseProp, SingleProp, ImageProp {}
 
 export interface IRect extends BaseProp, SingleProp, RectangleProp {}
 
@@ -89,8 +93,11 @@ export class Group extends BaseObject {
 
 // Класс Image
 export class Image extends SingleObject implements IImage {
+  fileName: string
+
   constructor(params: IImage) {
     super(params)
+    this.fileName = params.fileName
   }
 }
 

@@ -21,12 +21,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits, defineProps, withDefaults, defineModel } from 'vue'
+import { ref } from 'vue'
 import { ChromePicker } from 'vue-color'
+
+type Format = 'rgb' | 'hex' | 'hsl'
 
 interface ColorPickerProps {
   disableAlpha?: boolean
-  formats?: string[]
+  formats?: Format[]
   disabled?: boolean
   hideInput?: boolean
 }
@@ -45,7 +47,8 @@ const inputValue = ref<string | undefined>(color.value)
 
 const changeInput = (event: Event): void => {
   //emit('change', val)
-  inputValue.value = event?.target?.value
+  const target = event?.target as HTMLInputElement
+  inputValue.value = target?.value
 }
 
 const changePicker = (val: string): void => {

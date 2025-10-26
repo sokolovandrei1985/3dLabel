@@ -88,13 +88,15 @@ const emit = defineEmits<{
   (e: 'update:activeTab', key: string): void
 }>()
 
-const componentMap = {
+type TabComponent = '3d' | 'settings'
+
+const componentMap: Record<TabComponent, any> = {
   '3d': Tab3d,
   'settings': TabSettings
 }
 
 const getComponent = (key: string): VueElement => {
-  return componentMap[key]
+  return componentMap[key as TabComponent]
 }
 
 const onResetView = (): void => {
@@ -105,7 +107,7 @@ const onResetView = (): void => {
 const actionButtons = reactive([
   { key: 'collapse', title: 'Развернуть', icon: MenuFoldOutlined, action: toggleCollapsed, divider: true },
   { key: 'loadModel', title: 'Загрузить модель', icon: DownloadOutlined, action: loadModel, divider: true },
-  { key: 'orto', title: 'Ортографическая', icon: AreaChartOutlined, action: () => { setActiveCameraType('orto') } },
+  { key: 'orto', title: 'Ортографическая', icon: AreaChartOutlined, action: () => { setActiveCameraType('ortho') } },
   { key: 'perspective', title: 'Перспективная', icon: PictureOutlined, action: () => { setActiveCameraType('perspective') }, divider: true },
   { key: 'front', title: 'Спереди', icon: BorderBottomOutlined, action: () => { setActiveModelView('front') } },
   { key: 'back', title: 'Сзади', icon: BorderTopOutlined, action: () => { setActiveModelView('back') } },

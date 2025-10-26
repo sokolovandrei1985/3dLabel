@@ -25,7 +25,7 @@
         :max="360"
         :step="1"
         :disabled="isRotationDisabled"
-        @change="(val) => { setRotationValue(val) }"
+        @change="(val: number) => { setRotationValue(val) }"
       />
     </div>
 

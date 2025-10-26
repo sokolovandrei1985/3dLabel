@@ -14,6 +14,7 @@ onMounted(async () => {
 
   canvas = new Canvas(canvasEl.value, {
     selection: true,
+    preserveObjectStacking: true
   })
 
   try {

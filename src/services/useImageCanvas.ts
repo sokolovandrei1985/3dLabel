@@ -31,7 +31,6 @@ export async function loadCanvasConfig(): Promise<CanvasConfig | null> {
   }
 }
 
-
 export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Canvas | null> {
   if (!canvasEl) {
     throw new Error('[Fabric] Передан пустой canvasEl')
@@ -51,6 +50,7 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
     const fabricCanvas = new Canvas(canvasEl, {
       backgroundColor: 'rgba(236, 170, 47, 0.23)',
       selection: true,
+      preserveObjectStacking: true
     })
     //const strokeWidth = 2
     fabricCanvas.setDimensions({ width, height }, { backstoreOnly: true })
@@ -82,6 +82,7 @@ export async function initFabricCanvas(canvasEl: HTMLCanvasElement): Promise<Can
     return null
   }
 }
+
 export function getFabricCanvas(): Canvas | null {
   return fabricCanvas
 }
@@ -556,6 +557,7 @@ export function initOffscreenFabricCanvas(width: number, height: number): Canvas
   offscreenFabricCanvas = new Canvas(offscreenCanvas, {
     enableRetinaScaling: false,
     selection: false,
+    preserveObjectStacking: true
   });
 
   return offscreenFabricCanvas;

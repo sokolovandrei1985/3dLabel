@@ -10,8 +10,8 @@
     >
       <div
         id="center-top"
-        class="center-block"
-        :class="{ expanded: expandTop }"
+        class="center-block three-container"
+        :class="{ hidden: !showThreeContainer }"
         ref="threeContainer"
       >
       </div>
@@ -20,7 +20,6 @@
       <div
         id="center-bottom"
         class="center-block fabric-container"
-        :class="{ hidden: expandTop }"
       >
         <div id="canvasWrapper" ref="canvasWrapper" >
           <canvas id="fabricCanvas" ref="fabricCanvasEl" />
@@ -40,6 +39,8 @@ import { useTextureStore } from '@/stores/texture'
 import { FabricThreeTextureManager } from '@/services/FabricThreeTextureManager'
 import throttle from 'lodash.throttle'
 import { useScreenshooter } from '@/services/useScreenshooter'
+import { useApplicationStore } from '@/stores/application'
+import { storeToRefs } from 'pinia'
 
 const textureStore = useTextureStore()
 const fabricStore = useFabricStore()
@@ -60,6 +61,9 @@ const originalCanvasHeight = ref(1)
 
 let resizeObserver: ResizeObserver | null = null
 let fabricResizeObserver: ResizeObserver | null = null
+
+const applicationStore = useApplicationStore()
+const { showThreeContainer } = storeToRefs(applicationStore)
 
 const screenshooter = useScreenshooter({
   expandTop,
@@ -137,14 +141,15 @@ onMounted(async () => {
 
     if (fabricCanvasEl.value) {
       // Используем сервисную функцию инициализации fabricCanvas
-      const fabricCanvas = await initFabricCanvas(fabricCanvasEl.value)
+      //const fabricCanvas = await initFabricCanvas(fabricCanvasEl.value)
+      const fabricCanvas = await fabricStore.init(fabricCanvasEl.value)
       if (fabricCanvas) {
         fabricCanvasInstance.value = fabricCanvas
 
         originalCanvasWidth.value = fabricCanvas.getWidth()
         originalCanvasHeight.value = fabricCanvas.getHeight()
 
-        fabricStore.setCanvas(fabricCanvas)
+        //fabricStore.setCanvas(fabricCanvas)
 
           // --- Добавляем снэппинг поворота к 0/90/180/270 градусам ---
         fabricCanvas.on('object:rotating', (e) => {
@@ -330,7 +335,7 @@ onBeforeUnmount(() => {
   background-color: white;
   /* transition: opacity 0.1s ease; */
   overflow: hidden;
-  max-height: 1000px;
+  /*max-height: 1000px;*/
   opacity: 1;
 }
 
@@ -339,6 +344,10 @@ onBeforeUnmount(() => {
   opacity: 1;
   pointer-events: none;
   /* flex и размеры не меняются! */
+}
+
+.three-container.hidden {
+  display: none;
 }
 
 #canvasWrapper {

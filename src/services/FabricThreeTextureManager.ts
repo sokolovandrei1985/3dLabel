@@ -32,6 +32,7 @@ export class FabricThreeTextureManager {
     this.offscreenFabricCanvas = new Canvas(this.offscreenCanvas, {
       enableRetinaScaling: false,
       selection: false,
+      preserveObjectStacking: true
     });
 
     this.hackRect = new Rect({
@@ -129,7 +130,7 @@ export class FabricThreeTextureManager {
 
     const activeContainedObjects = new Set<FabricObject>();
     if (activeObject) {
-      if (activeObject.type === 'activeselection') {         
+      if (activeObject.type === 'activeselection') {
         (activeObject as ActiveSelection).getObjects().forEach(o => activeContainedObjects.add(toRaw(o)));
       } else if (activeObject.type === 'group') {
         (activeObject as Group).getObjects().forEach(o => activeContainedObjects.add(toRaw(o)));
@@ -143,10 +144,10 @@ export class FabricThreeTextureManager {
     //console.log('[updateTextureWithoutControls] activeObject.type:', activeObject?.type);
     //console.log('[updateTextureWithoutControls] fabricObjects:', fabricObjects);
     //console.log('[updateTextureWithoutControls] activeContainedObjects:', Array.from(activeContainedObjects));
-    
+
     this.offscreenFabricCanvas.clear();
 
- 
+
 
     // this.hackRect.set({
     //   left: 10,
@@ -196,9 +197,9 @@ export class FabricThreeTextureManager {
         this.offscreenFabricCanvas.add(clonedObj);
       }
       if (activeObject) {
-        
+
         const clonedActive = await activeObject.clone();
-        
+
         clonedActive.left = (activeObject.left ?? 0) * scaleXRatio;
         clonedActive.top = (activeObject.top ?? 0) * scaleYRatio;
         clonedActive.scaleX = (activeObject.scaleX ?? 1) * scaleXRatio;
@@ -223,7 +224,7 @@ export class FabricThreeTextureManager {
 
         this.offscreenFabricCanvas.add(clonedActive);
       }
-      
+
       //console.log('Offscreen objescts = ', this.offscreenFabricCanvas.getObjects())
       //console.log('activeObject?.type = ', activeObject?.type)
       //Применяем фильтры
@@ -238,7 +239,7 @@ export class FabricThreeTextureManager {
           textureStore.setCanvasTexture(this.texture);
           this.isTextureInitialized = true;
         }
-        
+
         resolve();
         };
         this.offscreenFabricCanvas.on('after:render', onAfterRender);

@@ -4,7 +4,7 @@
     layout="horizontal"
     class="element-editor"
   >
-    <AddObject />
+    <ActionButtons />
 
     <a-divider style="margin: 0">Параметры объекта</a-divider>
     <!-- Общие данные -->
@@ -51,7 +51,7 @@ import ShadowSection from './ShadowSection.vue'
 import LayerSection from './LayerSection.vue'
 import RectangleSection from './RectangleSection.vue'
 import TextSection from './TextSection.vue'
-import AddObject from './AddObject.vue'
+import ActionButtons from './ActionButtons.vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -69,8 +69,8 @@ const updateObject = (obj: object) => {
 
 <style scoped>
 .element-editor {
+  height: 100%;
   font-size: 12px;
-  height: 70vh;
   min-width: 300px;
   overflow: auto;
   background: white;
