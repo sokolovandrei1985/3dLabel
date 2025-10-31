@@ -365,7 +365,7 @@ export const useFabricStore = defineStore('fabric', () => {
 
   return {
     init,
-    //canvas,
+    canvas,
     canvasSize,
     textureManager,
     activeObject,

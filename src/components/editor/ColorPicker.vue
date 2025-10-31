@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<ColorPickerProps>(), {
   formats: () => ['rgb', 'hex', 'hsl'],
   disabled: false,
   hideInput: false
-});
+})
 
 const visibleEditor = ref<boolean>(false)
 

@@ -6,6 +6,7 @@
       'right-collapsed': isRightCollapsed
     }"
   >
+    <Loading v-bind="loading" />
     <LeftPanel />
     <CenterPanel ref="centerPanelRef" />
     <RightPanel
@@ -20,6 +21,7 @@ import { ref, onMounted } from 'vue'
 import LeftPanel from './components/panels/LeftPanel.vue'
 import CenterPanel from './components/panels/CenterPanel.vue'
 import RightPanel from './components/panels/RightPanel'
+import Loading from './components/utils/Loading.vue'
 import {
   loadSceneModels,
   loadEnvironmentMap,
@@ -31,6 +33,11 @@ import {
   activeCamera
 } from '@/services/useThreeScene'
 import { useTextureStore } from '@/stores/texture'
+import { useApplicationStore } from '@/stores/application'
+import { storeToRefs } from 'pinia'
+
+const appStore = useApplicationStore()
+const { loading } = storeToRefs(appStore)
 
 const centerPanelRef = ref()
 const activeRightTab = ref('')

@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { useFabricStore } from '@/stores/fabric'
 import { useImageFiles } from '@/stores/imageFiles'
 import { useApplicationStore } from '@/stores/application'
@@ -93,10 +93,10 @@ import Screenshoter from '@/services/screenshoter'
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const fileInputType = ref<string>('image')
-const fileAccept = computed(() => (fileInputType.value === 'image' ? '.svg,image/*' : '.3dl/*'))
+const fileAccept = computed(() => (fileInputType.value === 'image' ? '.svg,image/*' : '.3dl,*'))
 const store = useFabricStore()
 const { activeObject } = storeToRefs(store)
-const screenshoter = ref<Screenshoter>(null)
+const screenshoter = ref<Screenshoter | null>(null)
 
 const {
   addRect,
@@ -130,25 +130,27 @@ const onTakeScreenshots = async (): Promise<void> => {
     const canvas = getCanvas()
     if (canvas) screenshoter.value = new Screenshoter(canvas)
   }
-  if (screenshoter) {
+  if (screenshoter.value) {
     const blob = await screenshoter.value.makeScreenshot()
     console.log(blob)
 
     const url = URL.createObjectURL(blob as Blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'screenshot.png'
+    a.download = 'screenshot.zip'
     a.click()
   }
 }
 
-const onAddImage = (): void => {
+const onAddImage = async (): Promise<void> => {
   fileInputType.value = 'image'
+  await nextTick()
   fileInput.value?.click()
 }
 
-const onLoadProject = (): void => {
+const onLoadProject = async (): Promise<void> => {
   fileInputType.value = 'project'
+  await nextTick()
   fileInput.value?.click()
 }
 
