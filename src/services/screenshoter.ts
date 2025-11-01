@@ -41,7 +41,7 @@ export default class Screenshoter {
     const store = useApplicationStore()
     const { setLoadingState } = store
     this.setLoadingState = setLoadingState
-    this.totalSteps = VIEWS.length * 2
+    this.totalSteps = VIEWS.length * 2 + 1
     this.currentStep = 0
     this.currentState = ''
   }
@@ -191,7 +191,6 @@ export default class Screenshoter {
     //switchCamera(currentCamera)
     //scene.environment = envMap
     //scene.background = envMap
-    await this.awaitNextFrame()
 
     const zip = new JSZip()
     for (const [key, value] of screenshots) {
@@ -199,6 +198,21 @@ export default class Screenshoter {
       const data = value.split(',')[1]
       zip.file(`${key}.png`, data, { base64: true })
     }
+
+    // Скрин fabric canvas высокого разрешения
+    this.currentStep++
+    const loadingState = this.getLoadingState('Полотно высокого разрешения')
+    this.setLoadingState(loadingState)
+    await this.awaitNextFrame()
+
+    const globalConfigStore = useGlobalConfigStore()
+    const highResBlob = await saveHighResImage(
+      this.fabricCanvas,
+      globalConfigStore.canvasConfig?.inputWidthMM ?? 160,
+      globalConfigStore.canvasConfig?.inputHeightMM ?? 90
+    )
+    // Добавляем fabric high res png
+    zip.file('fabric_high_res.png', highResBlob)
 
     // Генерируем и скачиваем архив
     const content = await zip.generateAsync({ type: 'blob' })
