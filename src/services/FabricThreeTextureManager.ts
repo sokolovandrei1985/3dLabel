@@ -145,7 +145,7 @@ export class FabricThreeTextureManager {
     //console.log('[updateTextureWithoutControls] fabricObjects:', fabricObjects);
     //console.log('[updateTextureWithoutControls] activeContainedObjects:', Array.from(activeContainedObjects));
 
-    this.offscreenFabricCanvas.clear();
+    this.offscreenFabricCanvas.clear()
 
 
 
@@ -233,7 +233,7 @@ export class FabricThreeTextureManager {
       await new Promise<void>((resolve) => {
         const onAfterRender = () => {
         this.offscreenFabricCanvas.off('after:render', onAfterRender);
-        this.texture.image = this.offscreenFabricCanvas.lowerCanvasEl;
+        //this.texture.image = this.offscreenFabricCanvas.lowerCanvasEl;
         this.texture.needsUpdate = true;
         if (!this.isTextureInitialized) {
           textureStore.setCanvasTexture(this.texture);

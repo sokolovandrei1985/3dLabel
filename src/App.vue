@@ -7,17 +7,22 @@
     }"
   >
     <Loading v-bind="loading" />
-    <LeftPanel />
-    <CenterPanel ref="centerPanelRef" />
-    <RightPanel
-      v-model:collapsed="isRightCollapsed"
-      @update:activeTab="onRightTabChange"
-    />
+    <div class="main_grid_area">
+      <TopPanel class="header" />
+      <LeftPanel class="left" />
+      <CenterPanel ref="centerPanelRef" class="center" />
+      <RightPanel
+        class="right"
+        v-model:collapsed="isRightCollapsed"
+        @update:activeTab="onRightTabChange"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import TopPanel from './components/panels/TopPanel'
 import LeftPanel from './components/panels/LeftPanel.vue'
 import CenterPanel from './components/panels/CenterPanel.vue'
 import RightPanel from './components/panels/RightPanel'
@@ -94,14 +99,40 @@ onMounted(() => {
 
 <style scoped>
 #container {
-  padding: 8px;
-  display: grid;
-  grid-template-columns: minmax(18.5rem, 1fr) 5fr auto;
-  column-gap: 8px;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   box-sizing: border-box;
   background-color: #f5f5f5;
+}
+
+.main_grid_area {
+  padding: 0px 4px;
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "left center right";
+  grid-template-rows: auto auto;
+  grid-template-columns: minmax(18.5rem, 1fr) 5fr auto;
+  column-gap: 8px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.header {
+  grid-area: header;
+}
+
+.left {
+  grid-area: left;
+}
+
+.center {
+  grid-area: center;
+}
+
+.right {
+  grid-area: right;
 }
 </style>

@@ -77,6 +77,7 @@ export default class Screenshoter {
 
   async makeScreenshotAllViews(scene: THREE.Scene, camera: THREE.OrthographicCamera | THREE.PerspectiveCamera): Promise<Map<string, string | null>> {
     const pivotGroup = scene.getObjectByName('pivotGroup') as THREE.Group
+    const tableGroup = scene.getObjectByName('tableGroup') as THREE.Group
     if (!pivotGroup) return new Map()
 
     const result: Map<string, string | null> = new Map()
@@ -89,6 +90,7 @@ export default class Screenshoter {
       this.setLoadingState(loadingState)
 
       setModelView(pivotGroup, view)
+      setModelView(tableGroup, view)
       this.renderer.render(scene, camera)
       await this.awaitNextFrame()
       const screenshot = await this.getScreenshotBase64()

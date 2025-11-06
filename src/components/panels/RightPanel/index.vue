@@ -2,12 +2,12 @@
   <div class="panel-wrapper" :class="{ collapsed }">
     <!-- Кнопка в правом верхнем углу -->
     <a-button
-      v-if="!collapsed"
       class="collapse-button"
       type="text"
       shape="circle"
-      title="Свернуть"
-      :icon="h(MenuUnfoldOutlined)"
+      :title="collapseButton.title"
+      size="large"
+      :icon="h(collapseButton.icon)"
       @click="toggleCollapsed"
     />
 
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, VueElement, h, reactive } from 'vue'
+import { ref, onMounted, computed, VueElement, h, reactive } from 'vue'
 import Tab3d from './Tab3d.vue'
 import TabSettings from './TabSettings.vue'
 import {
@@ -70,9 +70,7 @@ const rightTabs = ref<TabItem[]>([])
 const activeTab  = ref('')
 
 const store = useRightPanelStore()
-const {
-  collapsed
-} = storeToRefs(store)
+const { collapsed } = storeToRefs(store)
 
 const {
   setActiveCameraType,
@@ -90,6 +88,11 @@ const emit = defineEmits<{
 
 type TabComponent = '3d' | 'settings'
 
+const collapseButton = computed(() => ({
+  title: collapsed.value ? 'Развернуть' : 'Свернуть',
+  icon: collapsed.value ? MenuFoldOutlined : MenuUnfoldOutlined
+}))
+
 const componentMap: Record<TabComponent, any> = {
   '3d': Tab3d,
   'settings': TabSettings
@@ -105,7 +108,7 @@ const onResetView = (): void => {
 }
 
 const actionButtons = reactive([
-  { key: 'collapse', title: 'Развернуть', icon: MenuFoldOutlined, action: toggleCollapsed, divider: true },
+  //{ key: 'collapse', title: 'Развернуть', icon: MenuFoldOutlined, action: toggleCollapsed, divider: true },
   { key: 'loadModel', title: 'Загрузить модель', icon: DownloadOutlined, action: loadModel, divider: true },
   { key: 'orto', title: 'Ортографическая', icon: AreaChartOutlined, action: () => { setActiveCameraType('ortho') } },
   { key: 'perspective', title: 'Перспективная', icon: PictureOutlined, action: () => { setActiveCameraType('perspective') }, divider: true },
@@ -147,10 +150,9 @@ const onTabChange = (activeTabKey: string): void => {
 
 /* Кнопка-иконка */
 .collapse-button {
-  position: absolute;
-  font-size: 16px;
-  top: -3px;
-  left: -3px;
+  position: fixed;
+  top: 0px;
+  right: 0px;
   z-index: 10;
 }
 

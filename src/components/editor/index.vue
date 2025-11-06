@@ -69,6 +69,7 @@ const updateObject = (obj: object) => {
 
 <style scoped>
 .element-editor {
+  padding: 8px 0px;
   height: 100%;
   font-size: 12px;
   min-width: 300px;

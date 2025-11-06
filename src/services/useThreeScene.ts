@@ -225,11 +225,13 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
   //Объекты сцены
 
   //Комната
-  const room = new Room(1, 1, 5, -1);
+  const room = new Room(1, 1, 5, -1)
   roomGroup.add(room)
-  scene.add(roomGroup);
+  scene.add(roomGroup)
 
-
+  //Стол
+  scene.add(tableGroup)
+  tableGroup.visible = false
 
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
@@ -242,7 +244,7 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
     onWindowResize(container)
   })
 
-  const textureStore = useTextureStore();
+  /*const textureStore = useTextureStore();
 
   watch(
     () => textureStore.canvasTexture,
@@ -254,7 +256,7 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
         //console.log('Three.js сцена отрендерена после обновления текстуры');
       }
     }
-  );
+  );*/
 
   animate()
 }
@@ -373,6 +375,7 @@ export function setModelRotation(view: 'front' | 'back' | 'right' | 'left' | 'to
 
   pivotGroup.quaternion.setFromEuler(euler)*/
   setModelView(pivotGroup, view)
+  setModelView(tableGroup, view)
 
   // Обновление слайдера (без зацикливания)
   if (uiControls?.setRotationSliderValue) {
@@ -482,7 +485,7 @@ if (activeCamera instanceof THREE.PerspectiveCamera) {
    *  ORTHOGRAPHIC CAMERA
    * -------------------------------------------------------- */
   if (activeCamera instanceof THREE.OrthographicCamera) {
-    console.log(size)
+    //console.log(size)
     const dx = size.x * margin_o
     const dy = size.y * margin_o
 
