@@ -22,10 +22,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import TopPanel from './components/panels/TopPanel'
+import TopPanel from './components/panels/TopPanel/index.vue'
 import LeftPanel from './components/panels/LeftPanel.vue'
 import CenterPanel from './components/panels/CenterPanel.vue'
-import RightPanel from './components/panels/RightPanel'
+import RightPanel from './components/panels/RightPanel/index.vue'
 import Loading from './components/utils/Loading.vue'
 import {
   loadSceneModels,

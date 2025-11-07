@@ -1,22 +1,27 @@
 <template>
   <div class="top-panel">
-    <a-divider type="vertical" style="margin: 0; height: 24px" />
-    <ProjectName class="project-name"/>
-    <a-divider type="vertical" style="margin: 0; height: 24px" />
-    <template v-for="actionButton in actionButtons" :key="actionButton.key">
-      <a-tooltip placement="bottomLeft" :title="actionButton.title">
-        <a-button
-          type="text"
-          shape="circle"
-          size="large"
-          :disabled="actionButton.disabled"
-          :icon="h(actionButton.icon)"
-          @click="actionButton.action"
-        />
-      </a-tooltip>
-      <a-divider v-if="actionButton.divider" type="vertical" style="margin: 0; height: 24px" />
-    </template>
+    <div class="left-side">
+      <a-divider type="vertical" style="margin: 0; height: 24px" />
+      <ProjectName class="project-name"/>
+      <a-divider type="vertical" style="margin: 0; height: 24px" />
+      <template v-for="actionButton in actionButtons" :key="actionButton.key">
+        <a-tooltip placement="bottomLeft" :title="actionButton.title">
+          <a-button
+            type="text"
+            shape="circle"
+            size="large"
+            :disabled="actionButton.disabled"
+            :icon="h(actionButton.icon)"
+            @click="actionButton.action"
+          />
+        </a-tooltip>
+        <a-divider v-if="actionButton.divider" type="vertical" style="margin: 0; height: 24px" />
+      </template>
+    </div>
 
+    <div class="right-side">
+      <AuthUser />
+    </div>
     <!-- Скрытый input -->
     <input
       ref="fileInput"
@@ -44,6 +49,7 @@ import {
 } from '@ant-design/icons-vue'
 import Screenshoter from '@/services/screenshoter'
 import ProjectName from './ProjectName.vue'
+import AuthUser from '@/components/auth/AuthUser.vue'
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const fabricStore = useFabricStore()
@@ -146,6 +152,12 @@ const actionButtons = computed(() => ([
 <style scoped>
 .top-panel {
   padding: 0px 40px 0px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.left-side {
   display: flex;
   align-items: center;
 }

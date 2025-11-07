@@ -17,7 +17,7 @@ export const useApplicationStore = defineStore('applicatoin', () => {
     if (!authUser.value) return '<Войдите или зарегистрируйтесь>'
     const { email, firstName, lastName } = authUser.value
     if (!firstName && !lastName) return email
-    return `${[firstName, lastName].concat(' ')}(${email})`
+    return `${[firstName, lastName].join(' ')} (${email})`
   })
 
   const toggleShowThreeContainer = (): void => {
@@ -56,7 +56,11 @@ export const useApplicationStore = defineStore('applicatoin', () => {
     const { name, author, fabric } = json
     projectName.value = name || 'New project'
     if (author) projectAuthor.value = author
-    await fabricStore.deserialize(fabric)
+    if (!name && !author && !fabric) {
+      await fabricStore.deserialize(json)
+    } else {
+      await fabricStore.deserialize(fabric)
+    }
   }
 
   // Экспорт

@@ -15,6 +15,7 @@ import {
 import type { ObjectMoveType } from '@/components/editor/constants'
 import { useImageFiles } from '@/stores/imageFiles'
 import { useGlobalConfigStore } from '@/stores/globalConfig'
+import { useEvents } from '@/composables/useEvents.ts'
 
 // добавляем кастомное свойство для хранения имени файла в хранилище imageFiles
 FabricImage.customProperties.push('fileName')
@@ -24,6 +25,8 @@ export const useFabricStore = defineStore('fabric', () => {
   const canvasSize = ref<{ width: number, height: number } | null>(null)
   const textureManager = shallowRef<FabricThreeTextureManager | null>(null)
   const activeObject = ref<FabricObject>(null)
+  const { emit } = useEvents()
+  //const throttleTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
   //const rawActiveObject = ref<any>(null)
 
   async function init(canvasEl: HTMLCanvasElement): Promise<Canvas | null> {
@@ -79,6 +82,11 @@ export const useFabricStore = defineStore('fabric', () => {
 
   function setTextureManager(manager: FabricThreeTextureManager | null) {
     textureManager.value = manager
+  }
+
+  function emitUpdateEvent(): void {
+    emit('fabric:update')
+    //throttleTimeout.value = null
   }
 
   function updateSelection(): void {
@@ -148,13 +156,13 @@ export const useFabricStore = defineStore('fabric', () => {
     const actObj: any = canvas.value.getActiveObject()
     if (actObj) {
       //console.log(obj)
-      const { left, top, strokeRadius, shadow, ...objProps } = obj
+      const { /*left, top,*/ strokeRadius, shadow, ...objProps } = obj
       // Координаты
-      if (left != null || top != null) {
+      /*if (left != null || top != null) {
         const x = left ?? actObj.left
         const y = top ?? actObj.top
         actObj.setXY(new Point(x, y), left != null ? 'left' : 'center', top != null ? 'top' : 'center')
-      }
+      }*/
       // Ширина и высота
       if (actObj.strokeWidth) {
         if (objProps.width != null) objProps.width -= actObj.strokeWidth
@@ -182,6 +190,7 @@ export const useFabricStore = defineStore('fabric', () => {
       } else if (actObj.shadow) {
         actObj.set({ shadow: null })
       }
+      console.log(objProps)
       actObj.set(objProps)
       actObj.setCoords()
       canvas.value.renderAll()
@@ -335,6 +344,10 @@ export const useFabricStore = defineStore('fabric', () => {
     if (!canvas.value) return
     await canvas.value.loadFromJSON(data)
     canvas.value.requestRenderAll()
+    // Принудительно вызываем обновление текустуры на модели
+    requestAnimationFrame(() => {
+      emitUpdateEvent()
+    })
   }
 
   function subscribeCanvasEvents(): void {
@@ -343,10 +356,18 @@ export const useFabricStore = defineStore('fabric', () => {
       canvas.value.on('selection:updated', updateSelection)
       canvas.value.on('selection:cleared', clearSelection)
       canvas.value.on('object:modified', updateSelection)
-      canvas.value.on('object:added', updateSelection)
+      /*canvas.value.on('object:added', updateSelection)
       canvas.value.on('object:moving', updateSelection)
       canvas.value.on('object:scaling', updateSelection)
-      canvas.value.on('object:rotating', updateSelection)
+      canvas.value.on('object:rotating', updateSelection)*/
+
+      canvas.value.on('object:modified', emitUpdateEvent)
+
+      /*canvas.value.on('object:modified', () => { console.log('modified') })
+      canvas.value.on('object:added', () => { console.log('added') })
+      canvas.value.on('object:moving', () => { console.log('moving') })
+      canvas.value.on('object:scaling', () => { console.log('scaling') })
+      canvas.value.on('object:rotating', () => { console.log('rotating') })*/
     }
   }
 
@@ -356,10 +377,10 @@ export const useFabricStore = defineStore('fabric', () => {
       canvas.value.off('selection:updated', updateSelection)
       canvas.value.off('selection:cleared', clearSelection)
       canvas.value.off('object:modified', updateSelection)
-      canvas.value.off('object:added', updateSelection)
+      /*canvas.value.off('object:added', updateSelection)
       canvas.value.off('object:moving', updateSelection)
       canvas.value.off('object:scaling', updateSelection)
-      canvas.value.off('object:rotating', updateSelection)
+      canvas.value.off('object:rotating', updateSelection)*/
     }
   }
 

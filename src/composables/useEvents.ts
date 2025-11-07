@@ -15,7 +15,7 @@ export type EventName = keyof EventMap
 const events = new Map<EventName, Set<Function>>()
 
 export function useEvents() {
-  const emit = <T extends EventName>(eventName: T, data: EventMap[T]) => {
+  const emit = <T extends EventName>(eventName: T, data?: EventMap[T]) => {
     if (events.has(eventName)) {
       events.get(eventName)?.forEach(callback => {
         callback(data)
@@ -23,7 +23,7 @@ export function useEvents() {
     }
   }
 
-  const on = <T extends EventName>(eventName: T, callback: (data: EventMap[T]) => void) => {
+  const on = <T extends EventName>(eventName: T, callback: (data?: EventMap[T]) => void) => {
     if (!events.has(eventName)) {
       events.set(eventName, new Set())
     }
@@ -35,13 +35,13 @@ export function useEvents() {
     })
   }
 
-  const off = <T extends EventName>(eventName: T, callback: (data: EventMap[T]) => void) => {
+  const off = <T extends EventName>(eventName: T, callback: (data?: EventMap[T]) => void) => {
     if (events.has(eventName)) {
       events.get(eventName)?.delete(callback)
     }
   }
 
-  const once = <T extends EventName>(eventName: T, callback: (data: EventMap[T]) => void) => {
+  const once = <T extends EventName>(eventName: T, callback: (data?: EventMap[T]) => void) => {
     const onceCallback = (data: EventMap[T]) => {
       callback(data)
       off(eventName, onceCallback)

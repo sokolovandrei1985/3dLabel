@@ -99,12 +99,12 @@ const { activeObject, canvasSize } = storeToRefs(store)
 
 const left = computed({
   get: () => Math.round(activeObject.value?.left || 0),
-  set: (value) => update('left', value)
+  set: (value) => update('left', value ?? 0)
 })
 
 const top = computed({
   get: () => Math.round(activeObject.value?.top || 0),
-  set: (value) => update('top', value)
+  set: (value) => update('top', value ?? 0)
 })
 
 const width = computed({

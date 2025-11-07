@@ -41,6 +41,7 @@ import throttle from 'lodash.throttle'
 import { useScreenshooter } from '@/services/useScreenshooter'
 import { useApplicationStore } from '@/stores/application'
 import { storeToRefs } from 'pinia'
+import { useEvents } from '@/composables/useEvents.ts'
 
 const textureStore = useTextureStore()
 const fabricStore = useFabricStore()
@@ -180,7 +181,7 @@ onMounted(async () => {
         fabricTextureManager.value = new FabricThreeTextureManager(fabricCanvas, width, height)
         await fabricTextureManager.value.updateTextureWithoutControls(textureStore)
 
-        const throttledUpdateTexture = throttle(() => {
+        /*const throttledUpdateTexture = throttle(() => {
           fabricTextureManager.value?.updateTextureWithoutControls(textureStore)
         }, 200, { trailing: true, leading: true })
 
@@ -192,7 +193,12 @@ onMounted(async () => {
         fabricCanvas.on('selection:created', throttledUpdateTexture)
         fabricCanvas.on('selection:updated', throttledUpdateTexture)
         fabricCanvas.on('object:scaling', throttledUpdateTexture)
-        fabricCanvas.on('object:rotating', throttledUpdateTexture)
+        fabricCanvas.on('object:rotating', throttledUpdateTexture)*/
+
+        const { on } = useEvents()
+        on('fabric:update', () => {
+          fabricTextureManager.value?.updateTextureWithoutControls(textureStore)
+        })
       }
 
       fitFabricCanvas(
