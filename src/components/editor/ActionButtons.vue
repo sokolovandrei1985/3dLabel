@@ -1,6 +1,23 @@
 <template>
   <div class="add-object">
     <!-- Добавление и удалиени объектов -->
+    <a-divider style="margin: 0">Действия</a-divider>
+    <div class="add-object-buttons">
+      <a-tooltip placement="top" title="Отменить">
+        <a-button size="large" :icon="h(UndoOutlined)" :disabled="!canUndo" @click="undo"/>
+      </a-tooltip>
+      <a-tooltip placement="top" title="Повторить">
+        <a-button size="large" :icon="h(RedoOutlined)" :disabled="!canRedo" @click="redo"/>
+      </a-tooltip>
+      <a-tooltip placement="top" title="Копировать">
+        <a-button size="large" :icon="h(CopyOutlined)" :disabled="!hasSelectedObject" @click="copy"/>
+      </a-tooltip>
+      <a-tooltip placement="top" title="Вставить">
+        <a-button size="large" :icon="h(pasteIcon)" :disabled="!hasObjectInClipboard" @click="paste"/>
+      </a-tooltip>
+    </div>
+
+    <!-- Добавление и удалиени объектов -->
     <a-divider style="margin: 0">Добавить/Удалить объект</a-divider>
     <div class="add-object-buttons">
       <a-tooltip placement="top" title="Изображение">
@@ -47,8 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue'
+import { ref, h, computed } from 'vue'
 import { useFabricStore } from '@/stores/fabric'
+import { useApplicationStore } from '@/stores/application'
 import { useImageFiles } from '@/stores/imageFiles'
 import { storeToRefs } from 'pinia'
 import {
@@ -58,12 +76,18 @@ import {
   DeleteOutlined,
   VerticalAlignTopOutlined,
   VerticalAlignBottomOutlined,
+  UndoOutlined,
+  RedoOutlined,
+  CopyOutlined,
 } from '@ant-design/icons-vue'
-import { toBack, toFront } from '@/services/customIcons'
+import { toBack, toFront, paste as pasteIcon } from '@/services/customIcons'
+import { undo, redo } from '@/services/useUndoRedo'
 
 const fileInput = ref<HTMLInputElement | null>(null)
-const store = useFabricStore()
-const { activeObject } = storeToRefs(store)
+const fabricStore = useFabricStore()
+const { activeObject, clipboard } = storeToRefs(fabricStore)
+const hasSelectedObject = computed(() => (!!activeObject.value))
+const hasObjectInClipboard = computed(() => (!!clipboard.value))
 
 const {
   addRect,
@@ -72,10 +96,15 @@ const {
   addImage,
   removeSelected,
   moveObjects,
-} = store
+  copy,
+  paste,
+} = fabricStore
 
 const imageStore = useImageFiles()
 const { loadImageFiles } = imageStore
+
+const applicationStore = useApplicationStore()
+const { canUndo, canRedo } = storeToRefs(applicationStore)
 
 const onAddImage = async (): Promise<void> => {
   fileInput.value?.click()

@@ -11,6 +11,11 @@ export const useApplicationStore = defineStore('applicatoin', () => {
   const authUser = ref<IAuthUser>(null)
   const projectName = ref<string>('New project')
   const projectAuthor = ref<IAuthUser>(null)
+  const isIndexedDbAvailable = ref<boolean>(true)
+  const isWebWorkersAvailable = ref<boolean>(true)
+
+  const canUndo = ref<boolean>(false)
+  const canRedo = ref<boolean>(false)
 
   const isAuthorized = computed(() => (!!authUser.value))
   const getUserName = computed(() => {
@@ -63,6 +68,21 @@ export const useApplicationStore = defineStore('applicatoin', () => {
     }
   }
 
+  const setBrowserRestrictions = (indexedDB?: boolean | undefined, webWorkers?: boolean | undefined): void => {
+    isIndexedDbAvailable.value = indexedDB ?? !!window.indexedDB
+    //console.log(`IndexedDB available: ${isIndexedDbAvailable.value}`)
+    isWebWorkersAvailable.value = webWorkers ?? !!window.Worker
+    //console.log(`WebWorker available: ${isWebWorkersAvailable.value}`)
+  }
+
+  const setUndoState = (state: boolean): void => {
+    canUndo.value = state
+  }
+
+  const setRedoState = (state: boolean): void => {
+    canRedo.value = state
+  }
+
   // Экспорт
   return {
     showThreeContainer,
@@ -71,11 +91,18 @@ export const useApplicationStore = defineStore('applicatoin', () => {
     isAuthorized,
     getUserName,
     projectName,
+    isIndexedDbAvailable,
+    isWebWorkersAvailable,
+    canUndo,
+    canRedo,
     toggleShowThreeContainer,
     setLoadingState,
     setAuthUser,
     setProjectName,
     saveProjectToJson,
     loadProjectFromJson,
+    setBrowserRestrictions,
+    setUndoState,
+    setRedoState,
   }
 })

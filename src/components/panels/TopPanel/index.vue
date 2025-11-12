@@ -133,7 +133,7 @@ const onTakeScreenshots = async (): Promise<void> => {
     const url = URL.createObjectURL(blob as Blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'screenshot.zip'
+    a.download = `${projectName.value || 'New project'} screenshots.zip`
     a.click()
   }
 }

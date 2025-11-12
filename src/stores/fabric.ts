@@ -3,6 +3,7 @@ import { ref, shallowRef } from 'vue'
 import { Canvas, Point, Shadow, Rect, Textbox, loadSVGFromString, util, FabricImage, ActiveSelection} from 'fabric'
 //import type { Canvas } from 'fabric'
 import type { FabricObject } from '@/models/fabric'
+import type { FabricObject as FabricObjectType } from 'fabric'
 import { FabricObjectFactory } from '@/models/fabric'
 import type { FabricThreeTextureManager } from '@/services/FabricThreeTextureManager'
 import {
@@ -26,6 +27,8 @@ export const useFabricStore = defineStore('fabric', () => {
   const textureManager = shallowRef<FabricThreeTextureManager | null>(null)
   const activeObject = ref<FabricObject>(null)
   const { emit } = useEvents()
+  const isLoading = ref<boolean>(false)
+  const clipboard = shallowRef<FabricObjectType | null>(null)
   //const throttleTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
   //const rawActiveObject = ref<any>(null)
 
@@ -342,12 +345,52 @@ export const useFabricStore = defineStore('fabric', () => {
 
   async function deserialize(data: Object): Promise<void> {
     if (!canvas.value) return
-    await canvas.value.loadFromJSON(data)
-    canvas.value.requestRenderAll()
-    // Принудительно вызываем обновление текустуры на модели
-    requestAnimationFrame(() => {
-      emitUpdateEvent()
+    isLoading.value = true
+    try {
+      await canvas.value.loadFromJSON(data)
+      canvas.value.requestRenderAll()
+      // Принудительно вызываем обновление текустуры на модели
+      requestAnimationFrame(() => {
+        emitUpdateEvent()
+      })
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function copy(): Promise<void> {
+    if (!canvas.value) return
+    const activeObject: FabricObjectType | undefined = canvas.value.getActiveObject()
+    if (activeObject) {
+      clipboard.value = await activeObject.clone()
+    }
+  }
+
+  async function paste() {
+    if (!canvas.value || !clipboard.value) return
+    const clonedObj = await clipboard.value.clone()
+    canvas.value.discardActiveObject()
+    clonedObj.set({
+      left: clonedObj.left + 10,
+      top: clonedObj.top + 10,
+      evented: true,
     })
+    if (clonedObj instanceof ActiveSelection) {
+      // active selection needs a reference to the canvas.
+      const avtiveSelection = clonedObj as ActiveSelection
+      avtiveSelection.canvas = canvas.value
+      avtiveSelection.forEachObject((obj) => {
+        canvas.value!.add(obj)
+      })
+      // this should solve the unselectability
+      avtiveSelection.setCoords()
+    } else {
+      canvas.value.add(clonedObj)
+    }
+    clipboard.value.top += 10
+    clipboard.value.left += 10
+    canvas.value.setActiveObject(clonedObj)
+    canvas.value.requestRenderAll()
   }
 
   function subscribeCanvasEvents(): void {
@@ -390,6 +433,8 @@ export const useFabricStore = defineStore('fabric', () => {
     canvasSize,
     textureManager,
     activeObject,
+    isLoading,
+    clipboard,
     //rawActiveObject,
     getCanvas,
     setCanvas,
@@ -404,5 +449,7 @@ export const useFabricStore = defineStore('fabric', () => {
     moveObjects,
     serialize,
     deserialize,
+    copy,
+    paste,
   }
 })

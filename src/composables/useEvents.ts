@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue'
+//import { ref, onUnmounted } from 'vue'
 
 // Базовые типы для событий
 export interface EventMap {
@@ -30,9 +30,9 @@ export function useEvents() {
     events.get(eventName)?.add(callback)
 
     // Автоматическая отписка при уничтожении компонента
-    onUnmounted(() => {
+    /*onUnmounted(() => {
       off(eventName, callback)
-    })
+    })*/
   }
 
   const off = <T extends EventName>(eventName: T, callback: (data?: EventMap[T]) => void) => {

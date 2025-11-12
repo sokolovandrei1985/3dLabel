@@ -4,12 +4,14 @@ export interface StateRecord {
 }
 
 export interface DatabaseService {
-  addState(state: string): Promise<number>
-  getState(id: number): Promise<string | null>
-  getNextState(id: number): Promise<string | null>
-  getPrevState(id: number): Promise<string | null>
-  removeState(id: number): Promise<void>
-  removeStateAfter(id: number): Promise<void>
-  removeFirstState(): Promise<void>
+  addRow(state: string): Promise<number>
+  getRow(id: number): Promise<string | null>
+  getNextRow(id: number): Promise<StateRecord | boolean | null>
+  getPrevRow(id: number): Promise<StateRecord | boolean | null>
+  removeRow(id: number): Promise<void>
+  removeRowsAfter(id: number): Promise<void>
+  removeFirstRow(): Promise<void>
   getCount(): Promise<number>
+  clearAll(): Promise<void>
+  getLastRow(): Promise<StateRecord | null>
 }

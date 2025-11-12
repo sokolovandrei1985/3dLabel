@@ -40,9 +40,11 @@ import {
 import { useTextureStore } from '@/stores/texture'
 import { useApplicationStore } from '@/stores/application'
 import { storeToRefs } from 'pinia'
+import { initUndoRedoService } from '@/services/useUndoRedo'
 
 const appStore = useApplicationStore()
 const { loading } = storeToRefs(appStore)
+const { setBrowserRestrictions } = appStore
 
 const centerPanelRef = ref()
 const activeRightTab = ref('')
@@ -79,6 +81,9 @@ function onRightTabChange(newKey: string) {
 }
 
 onMounted(() => {
+  setBrowserRestrictions()
+  initUndoRedoService()
+
   setUICallbacks({
     setRotationSliderEnabled: (_enabled: boolean) => {
       isRotationDisabled.value = false

@@ -39,7 +39,7 @@ export class IndexedDBService implements DatabaseService {
     return this.db!
   }
 
-  async addState(state: string): Promise<number> {
+  async addRow(state: string): Promise<number> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ export class IndexedDBService implements DatabaseService {
     })
   }
 
-  async getState(id: number): Promise<string | null> {
+  async getRow(id: number): Promise<string | null> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -74,7 +74,7 @@ export class IndexedDBService implements DatabaseService {
     })
   }
 
-  async getNextState(id: number): Promise<string | null> {
+  async getNextRow(id: number): Promise<StateRecord | boolean | null> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -88,15 +88,15 @@ export class IndexedDBService implements DatabaseService {
         const cursor = request.result
         if (cursor) {
           const record: StateRecord = cursor.value
-          resolve(record.state)
+          resolve(record)
         } else {
-          resolve(null)
+          resolve(false)
         }
       }
     })
   }
 
-  async getPrevState(id: number): Promise<string | null> {
+  async getPrevRow(id: number): Promise<StateRecord | boolean | null> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -110,15 +110,15 @@ export class IndexedDBService implements DatabaseService {
         const cursor = request.result
         if (cursor) {
           const record: StateRecord = cursor.value
-          resolve(record.state)
+          resolve(record)
         } else {
-          resolve(null)
+          resolve(false)
         }
       }
     })
   }
 
-  async removeState(id: number): Promise<void> {
+  async removeRow(id: number): Promise<void> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -132,7 +132,7 @@ export class IndexedDBService implements DatabaseService {
     })
   }
 
-  async removeStateAfter(id: number): Promise<void> {
+  async removeRowsAfter(id: number): Promise<void> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -154,7 +154,7 @@ export class IndexedDBService implements DatabaseService {
     })
   }
 
-  async removeFirstState(): Promise<void> {
+  async removeFirstRow(): Promise<void> {
     const db = await this.ensureDB()
 
     return new Promise((resolve, reject) => {
@@ -187,6 +187,42 @@ export class IndexedDBService implements DatabaseService {
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve(request.result)
+    })
+  }
+
+  async clearAll(): Promise<void> {
+    const db = await this.ensureDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readwrite')
+      const store = transaction.objectStore(STORE_NAME)
+
+      const request = store.clear()
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve()
+    })
+  }
+
+  async getLastRow(): Promise<StateRecord | null> {
+    const db = await this.ensureDB()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly')
+      const store = transaction.objectStore(STORE_NAME)
+
+      const request = store.openCursor(null, 'prev')
+
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => {
+        const cursor = request.result
+        if (cursor) {
+          const record: StateRecord = cursor.value
+          resolve(record)
+        } else {
+          resolve(null)
+        }
+      }
     })
   }
 }

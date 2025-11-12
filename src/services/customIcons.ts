@@ -2,6 +2,7 @@ import { h } from 'vue'
 import type { Component } from 'vue'
 import toFrontSvg from '@/assets/toFront.svg?raw'
 import toBackSvg from '@/assets/toBack.svg?raw'
+import pasteSvg from '@/assets/paste.svg?raw'
 
 const createIconComponent = (svgString: string): Component => ({
   render() {
@@ -17,3 +18,4 @@ const createIconComponent = (svgString: string): Component => ({
 
 export const toFront = createIconComponent(toFrontSvg)
 export const toBack = createIconComponent(toBackSvg)
+export const paste = createIconComponent(pasteSvg)
