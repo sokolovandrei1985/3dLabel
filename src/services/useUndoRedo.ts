@@ -60,9 +60,10 @@ export async function saveState(): Promise<number | null> {
       currentStateId = await dbService.addRow(state)
 
       // Проверяем, что записей в таблице не больше допустимого максимума
-      const count = await dbService.getCount()
+      let count = await dbService.getCount()
       while (count > MAX_STATE_COUNT) {
         await dbService.removeFirstRow()
+        count = await dbService.getCount()
       }
       setUndoState!(count > 1)
       return currentStateId

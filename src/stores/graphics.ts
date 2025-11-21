@@ -1,6 +1,7 @@
 // stores/graphics.ts
 import { defineStore } from 'pinia'
 import type { WebGLRenderer, Camera, Scene } from 'three'
+import * as THREE from 'three'
 //import { ref } from 'vue'
 
 export const useGraphicsStore = defineStore('graphics', {
@@ -8,7 +9,9 @@ export const useGraphicsStore = defineStore('graphics', {
     renderer: null as WebGLRenderer | null,
     activeCamera: null as Camera | null,
     scene: null as Scene | null,             // Добавляем сцену
-    isAnimationActive: true as boolean,
+    isAnimationActive: false as boolean,
+    models: null as THREE.Object3D[] | null,
+    envTexture: null as THREE.DataTexture | null
   }),
   actions: {
     setRenderer(renderer: WebGLRenderer) {
@@ -22,6 +25,12 @@ export const useGraphicsStore = defineStore('graphics', {
     },
     setAnimationActive(isActive: boolean) {
       this.isAnimationActive = isActive ?? true
-    }
+    },
+    setModels(modelArray: THREE.Object3D[]) {
+      this.models = modelArray
+    },
+    setEnvTexture(texture: THREE.DataTexture) {
+      this.envTexture = texture
+    },
   },
 })

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import JSZip from 'jszip'
-import { switchScene, setModelView, scene, getModelDimensions, calcModelShaders, texture } from '@/services/useThreeScene'
+import { switchScene, setModelView, fillScene, getModelDimensions, calcModelShaders, loadTexture } from '@/services/useThreeScene'
 import type { Canvas } from 'fabric'
 import { saveHighResImage } from '@/services/useImageExport'
 //import type { Ref } from 'vue'
@@ -59,7 +59,7 @@ export default class Screenshoter {
       currentStep: this.currentStep,
       text,
       showProgressBar: true,
-      width: '12rem'
+      width: '25rem'
     }
   }
 
@@ -77,7 +77,7 @@ export default class Screenshoter {
 
   async makeScreenshotAllViews(scene: THREE.Scene, camera: THREE.OrthographicCamera | THREE.PerspectiveCamera): Promise<Map<string, string | null>> {
     const pivotGroup = scene.getObjectByName('pivotGroup') as THREE.Group
-    const tableGroup = scene.getObjectByName('tableGroup') as THREE.Group
+    //const tableGroup = scene.getObjectByName('tableGroup') as THREE.Group
     if (!pivotGroup) return new Map()
 
     const result: Map<string, string | null> = new Map()
@@ -90,7 +90,7 @@ export default class Screenshoter {
       this.setLoadingState(loadingState)
 
       setModelView(pivotGroup, view)
-      setModelView(tableGroup, view)
+      //setModelView(tableGroup, view)
       this.renderer.render(scene, camera)
       await this.awaitNextFrame()
       const screenshot = await this.getScreenshotBase64()
@@ -109,118 +109,132 @@ export default class Screenshoter {
     graphicsStore.setAnimationActive(false)
     this.currentStep = 0
     this.setLoadingState({ show: true })
+    try {
+      const screenshots: Map<string, string | null> = new Map()
 
-    const screenshots: Map<string, string | null> = new Map()
+      // Формируем сцену
+      const offscreenScene = new THREE.Scene()
+      await fillScene(offscreenScene, 'models/models.json') // TODO: вытести строковую костанту в конструктор
+      // Добавляем текстуры
+      if (!useGraphicsStore().envTexture) {
+        this.totalSteps++
+        this.currentStep++
+        this.setLoadingState(this.getLoadingState('Загрузка текстур'))
+        await loadTexture('environments/lonely_road_afternoon_puresky_4k.exr')
+      }
+      const texture = useGraphicsStore().envTexture
+      if (texture) {
+        const screenshotEnvMap = this.pmremGenerator.fromEquirectangular(texture).texture
+        offscreenScene.environment = screenshotEnvMap
+        offscreenScene.background = screenshotEnvMap
+      }
 
-    // Копируем сцену
-    const sceneData = scene.toJSON()
-    const loader = new THREE.ObjectLoader()
-    const offscreenScene: THREE.Scene = await loader.parseAsync(sceneData) as THREE.Scene
-    // Добавляем текстуры
-    const screenshotEnvMap = this.pmremGenerator.fromEquirectangular(texture).texture
-    offscreenScene.environment = screenshotEnvMap
-    offscreenScene.background = screenshotEnvMap
+      // Получаем размеры и центр модели
+      const modelGroup = offscreenScene.getObjectByName('modelGroup') as THREE.Group
+      const { size, center } = getModelDimensions(modelGroup) || {}
 
-    // Получаем размеры и центр модели
-    const { size, center } = getModelDimensions() || {}
+      if (!size || !center) return null
 
-    if (!size || !center) return null
+      const part = 2000 / Math.max(size.x, size.y)
+      this.renderer.setSize(Math.round(size.x * part), Math.round(size.y * part), false)
 
-    const part = 2000 / Math.max(size.x, size.y)
-    this.renderer.setSize(Math.round(size.x * part), Math.round(size.y * part), false)
+      const margin_o = 1.5
+      const dx = size.x * margin_o
+      const dy = size.y * margin_o
 
-    const margin_o = 1.5
-    const dx = size.x * margin_o
-    const dy = size.y * margin_o
+      const halfBoxW = dx / 2
+      const halfBoxH = dy / 2
 
-    const halfBoxW = dx / 2
-    const halfBoxH = dy / 2
+      const modelAspect = dx / dy
 
-    const modelAspect = dx / dy
+      // Ортографисеская камера
+      switchScene('ortho', offscreenScene)
+      let camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = new THREE.OrthographicCamera(
+        -halfBoxW,
+        halfBoxW,
+        halfBoxH,
+        -halfBoxH,
+        0.1,
+        1000
+      )
+      // ортокамера всегда смотрит со страницы +Z
+      camera.position.set(center.x, center.y, center.z + 10)
+      camera.lookAt(center)
+      camera.zoom = 1
 
-    // Ортографисеская камера
-    switchScene('ortho', offscreenScene)
-    let camera: THREE.OrthographicCamera | THREE.PerspectiveCamera = new THREE.OrthographicCamera(
-      -halfBoxW,
-      halfBoxW,
-      halfBoxH,
-      -halfBoxH,
-      0.1,
-      1000
-    )
-    // ортокамера всегда смотрит со страницы +Z
-    camera.position.set(center.x, center.y, center.z + 10)
-    camera.lookAt(center)
-    camera.zoom = 1
+      camera.updateProjectionMatrix()
 
-    camera.updateProjectionMatrix()
+      /*console.log(`Ширина сцены: ${size.x}`)
+      console.log(`Высота сцены: ${size.y}`)
+      console.log(`Глубина сцены: ${size.z}`)*/
 
-    /*console.log(`Ширина сцены: ${size.x}`)
-    console.log(`Высота сцены: ${size.y}`)
-    console.log(`Глубина сцены: ${size.z}`)*/
+      calcModelShaders()
+      this.currentState = 'Создание ортографических скриншотов'
+      for (const [key, value] of await this.makeScreenshotAllViews(offscreenScene, camera)) {
+        screenshots.set('ortho_' + key, value)
+      }
 
-    calcModelShaders()
-    this.currentState = 'Создание ортографических скриншотов'
-    for (const [key, value] of await this.makeScreenshotAllViews(offscreenScene, camera)) {
-      screenshots.set('ortho_' + key, value)
+      // Перспективная камера
+      switchScene('perspective', offscreenScene)
+      const cameraFov = 35
+      const fovY = THREE.MathUtils.degToRad(cameraFov)
+      const fovX = 2 * Math.atan(Math.tan(fovY / 2) * modelAspect)
+
+      const distForX = size.x / Math.tan(fovX / 2)
+      const distForY = size.y / Math.tan(fovY / 2)
+
+      const camDist = Math.max(distForX, distForY)
+
+      camera = new THREE.PerspectiveCamera(cameraFov, modelAspect, camDist * 0.01, camDist + size.z * 2 + 100)
+
+      camera.position.set(center.x, center.y, center.z + camDist)
+      camera.zoom = 1
+      camera.lookAt(center)
+      camera.updateProjectionMatrix()
+
+      calcModelShaders()
+      this.currentState = 'Создание перспективных скриншотов'
+      for (const [key, value] of await this.makeScreenshotAllViews(offscreenScene, camera)) {
+        screenshots.set('perspective_' + key, value)
+      }
+
+      // Вернуть сцену к состоянию до запуска скриншотов
+      //switchCamera(currentCamera)
+      //scene.environment = envMap
+      //scene.background = envMap
+
+      const zip = new JSZip()
+      for (const [key, value] of screenshots) {
+        if (!value) continue
+        const data = value.split(',')[1]
+        zip.file(`${key}.png`, data, { base64: true })
+      }
+
+      // Скрин fabric canvas высокого разрешения
+      this.currentStep++
+      const loadingState = this.getLoadingState('Полотно высокого разрешения')
+      this.setLoadingState(loadingState)
+      await this.awaitNextFrame()
+
+      const globalConfigStore = useGlobalConfigStore()
+      const highResBlob = await saveHighResImage(
+        this.fabricCanvas,
+        globalConfigStore.canvasConfig?.inputWidthMM ?? 160,
+        globalConfigStore.canvasConfig?.inputHeightMM ?? 90
+      )
+      // Добавляем fabric high res png
+      zip.file('fabric_high_res.png', highResBlob)
+
+      // Генерируем и скачиваем архив
+      const content = await zip.generateAsync({ type: 'blob' })
+
+      return content
+    } catch (e) {
+      console.error('Ошибка при формировании скриншотов!', e)
+      return null
+    } finally {
+      graphicsStore.setAnimationActive(true)
+      this.setLoadingState({ show: false })
     }
-
-    // Перспективная камера
-    switchScene('perspective', offscreenScene)
-    const cameraFov = 35
-    const fovY = THREE.MathUtils.degToRad(cameraFov)
-    const fovX = 2 * Math.atan(Math.tan(fovY / 2) * modelAspect)
-
-    const distForX = size.x / Math.tan(fovX / 2)
-    const distForY = size.y / Math.tan(fovY / 2)
-
-    const camDist = Math.max(distForX, distForY)
-
-    camera = new THREE.PerspectiveCamera(cameraFov, modelAspect, camDist * 0.01, camDist + size.z * 2 + 100)
-
-    camera.position.set(center.x, center.y, center.z + camDist)
-    camera.zoom = 1
-    camera.lookAt(center)
-    camera.updateProjectionMatrix()
-
-    calcModelShaders()
-    this.currentState = 'Создание перспективных скриншотов'
-    for (const [key, value] of await this.makeScreenshotAllViews(offscreenScene, camera)) {
-      screenshots.set('perspective_' + key, value)
-    }
-
-    // Вернуть сцену к состоянию до запуска скриншотов
-    //switchCamera(currentCamera)
-    //scene.environment = envMap
-    //scene.background = envMap
-
-    const zip = new JSZip()
-    for (const [key, value] of screenshots) {
-      if (!value) continue
-      const data = value.split(',')[1]
-      zip.file(`${key}.png`, data, { base64: true })
-    }
-
-    // Скрин fabric canvas высокого разрешения
-    this.currentStep++
-    const loadingState = this.getLoadingState('Полотно высокого разрешения')
-    this.setLoadingState(loadingState)
-    await this.awaitNextFrame()
-
-    const globalConfigStore = useGlobalConfigStore()
-    const highResBlob = await saveHighResImage(
-      this.fabricCanvas,
-      globalConfigStore.canvasConfig?.inputWidthMM ?? 160,
-      globalConfigStore.canvasConfig?.inputHeightMM ?? 90
-    )
-    // Добавляем fabric high res png
-    zip.file('fabric_high_res.png', highResBlob)
-
-    // Генерируем и скачиваем архив
-    const content = await zip.generateAsync({ type: 'blob' })
-    graphicsStore.setAnimationActive(true)
-    this.setLoadingState({ show: false })
-
-    return content
   }
 }

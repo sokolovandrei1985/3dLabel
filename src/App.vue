@@ -55,7 +55,7 @@ const isFitDisabled = ref(false)
 const rotationValue = ref(0)
 const isSliderInternalUpdate = ref(false)
 
-async function onLoadModel() {
+/*async function onLoadModel() {
   try {
     await loadEnvironmentMap(
       'environments/lonely_road_afternoon_puresky_4k.exr',
@@ -74,7 +74,7 @@ async function onLoadModel() {
   } catch (error) {
     console.error('Ошибка при загрузке окружения:', error)
   }
-}
+}*/
 
 function onRightTabChange(newKey: string) {
   activeRightTab.value = newKey

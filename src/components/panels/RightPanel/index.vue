@@ -103,7 +103,7 @@ const getComponent = (key: string): VueElement => {
 }
 
 const onResetView = (): void => {
-  resetCameraControls()
+  //resetCameraControls()
   fitModelToView()
 }
 

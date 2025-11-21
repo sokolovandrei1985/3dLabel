@@ -1,7 +1,8 @@
 //src/tablewall.ts
 import * as THREE from 'three';
 
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+//import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 import { TextureLoader, RepeatWrapping } from 'three';
 const textureLoader = new TextureLoader();
 const woodTexture = textureLoader.load('./textures/dark_wood.png');
@@ -54,7 +55,7 @@ export class Table extends THREE.Group {
       textureWidth: window.innerWidth * window.devicePixelRatio / 2,
       textureHeight: window.innerHeight * window.devicePixelRatio / 2,
       color: new THREE.Color(0xffffff)//0x363636),
-           
+
     });
     this.reflector.position.set(0, tableHeight/2+tableHeight*0.01, 0);
     this.reflector.rotateX(-Math.PI / 2);
@@ -77,7 +78,7 @@ export class Table extends THREE.Group {
       transparent: true,
       depthWrite: false,
       reflectivity: 0,
-      side: THREE.FrontSide,        
+      side: THREE.FrontSide,
     });
     // Назначение на материал оверлея
     // overlayMaterial.lightMap = causticTexture;
@@ -113,18 +114,18 @@ export class Table extends THREE.Group {
 //       roughness: 0.8,
 //       transmission: 0.1,
 //       thickness: 0.2,
-//       ior: 1.5,    
+//       ior: 1.5,
 //       transparent: true,
 //       depthWrite: false,
-//       side: THREE.DoubleSide,      
-//       alphaTest: 0.1,    
+//       side: THREE.DoubleSide,
+//       alphaTest: 0.1,
 //        color: 0xffffff,
-//       alphaMap: this.causticTexture, 
+//       alphaMap: this.causticTexture,
 //         emissive: new THREE.Color(0xffffff),        // белое свечение
 //       emissiveMap: this.causticTexture,            // та же текстура для свечения
 //       emissiveIntensity: 20,                       // увеличь яркость свечения
 //     });
-    
+
 //     this.causticOverlay = new THREE.Mesh(causticGeometry, overlayCausticMaterial);
 //     // Поворачиваем плоскость, чтобы она лежала горизонтально
 
@@ -132,7 +133,7 @@ export class Table extends THREE.Group {
 //     function degreesToRadians(degrees: number): number {
 //       return degrees * (Math.PI / 180);
 //     }
-  
+
 //     const angleX = degreesToRadians(90);
 //     const angleZ = degreesToRadians(-45);
 //     this.causticOverlay.rotateX(angleX);
@@ -146,7 +147,7 @@ export class Table extends THREE.Group {
 //     //    function degreesToRadians(degrees: number): number {
 //     //   return degrees * (Math.PI / 180);
 //     // }
-    
+
 //     // this.causticOverlay.rotation.z = degreesToRadians(90)   // например, 60 градусов вниз
 
 
@@ -242,13 +243,55 @@ wall.rotation.y = Math.PI / 2; // повернуть на 90 градусов
   wall.castShadow = true;
   wall.receiveShadow = true;
 
-  
+
 
 
   // this.add(wall);
 this.overlay.renderOrder = 15;
 // this.causticOverlay.renderOrder = 18
   }
+
+  /*toJSON() {
+    // Получаем базовое представление объекта как Group
+    const data = super.toJSON();
+
+    // Добавляем метаданные, чтобы идентифицировать этот объект как Table
+    data.object.type = 'Table';
+    (data.object as any).tableHeight = this.tableHeight;
+
+    const tableGeometry = this.table.geometry as THREE.BoxGeometry;
+    (data.object as any).width = tableGeometry.parameters.width;
+    (data.object as any).depth = tableGeometry.parameters.depth;
+
+    return data;
+  }
+
+  static fromJSON(json: any) {
+    // Восстанавливаем Table из JSON данных
+    const table = new Table(
+      json.object.width || 1,
+      json.object.depth || 1,
+      json.object.tableHeight || 0.1
+    );
+
+    // Восстанавливаем позицию, вращение и масштаб
+    if (json.object.position) {
+      table.position.fromArray(json.object.position);
+    }
+    if (json.object.rotation) {
+      table.rotation.fromArray(json.object.rotation);
+    }
+    if (json.object.scale) {
+      table.scale.fromArray(json.object.scale);
+    }
+
+    // Восстанавливаем UUID если нужно
+    if (json.object.uuid) {
+      table.uuid = json.object.uuid;
+    }
+
+    return table;
+  }*/
 
 //     // Метод для управления смещением каустик-текстуры
 //   setCausticsOffset(x: number, y: number) {
@@ -268,5 +311,5 @@ this.overlay.renderOrder = 15;
   //   this.position.y = y - this.tableHeight;
   //   this.updateMatrixWorld(true);
   // }
-  
+
 }

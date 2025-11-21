@@ -21,17 +21,17 @@ export let scene: THREE.Scene
 export let renderer: THREE.WebGLRenderer
 export let controls: OrbitControls
 export let pmremGenerator: PMREMGenerator
-export let texture: THREE.DataTexture
+//export let texture: THREE.DataTexture
 
 export let envMap: THREE.Texture | null = null
 
-let fixedPerspectiveCameraState: {
+/*let fixedPerspectiveCameraState: {
   position: THREE.Vector3
   quaternion: THREE.Quaternion
   zoom: number
   fov: number
   controlsTarget: THREE.Vector3
-} | null = null
+} | null = null*/
 
 type CameraUIControls = {
   setRotationSliderEnabled: (enabled: boolean) => void
@@ -47,27 +47,116 @@ const frustumSize = 5
 
 let isSliderInternalUpdate = false
 
-// --- Объявляем группы глобально ---
-
-const tableGroup = new THREE.Group()
-tableGroup.name = 'tableGroup'
-
-const modelGroup = new THREE.Group()
-modelGroup.name = 'modelGroup'
-
-const pivotGroup = new THREE.Group()
-pivotGroup.name = 'pivotGroup'
-
-const roomGroup = new THREE.Group()
-roomGroup.name = 'roomGroup'
-
-//Экспортируемые функции
-
 export function setUICallbacks(callbacks: CameraUIControls) {
   uiControls = callbacks
 }
 
+//Свет
+type SceneLight = THREE.DirectionalLight | THREE.AmbientLight | THREE.HemisphereLight
+function getLights(): SceneLight[] {
+  const result: SceneLight[] = []
 
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 20)
+  directionalLight.position.set(1, 0.8, 0)
+  directionalLight.castShadow = true
+
+  const d = 1.5;
+  directionalLight.shadow.camera.left = -d
+  directionalLight.shadow.camera.right = d
+  directionalLight.shadow.camera.top = d
+  directionalLight.shadow.camera.bottom = -d
+  directionalLight.shadow.camera.near = 0.1
+  directionalLight.shadow.camera.far = 4 // уменьшено с 10 до 4
+  directionalLight.shadow.bias = -0.005
+  directionalLight.shadow.normalBias = 0.05
+  directionalLight.shadow.mapSize.width = 2048
+  directionalLight.shadow.mapSize.height = 2048
+  directionalLight.shadow.camera.updateProjectionMatrix()
+
+  result.push(directionalLight)
+
+  const directional1 = new THREE.DirectionalLight(0xffffff, 3)
+  directional1.position.set(0, 1, -1)
+  result.push(directional1)
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 3)
+  result.push(ambientLight)
+
+  const hemiLight = new THREE.HemisphereLight (0xffffff, 2)
+  result.push(hemiLight)
+
+  return result
+}
+
+interface SceneModels { [key: string]: THREE.Group }
+async function getSceneModels(jsonUrl: string): Promise<SceneModels | null> {
+  const result: SceneModels = {}
+  const graphicsStore = useGraphicsStore()
+  const textureStore = useTextureStore()
+  const canvasTexture = textureStore.canvasTexture
+  if (!canvasTexture) {
+    console.warn('Canvas texture not ready yet')
+    return null
+  }
+
+  // Модель
+  let models
+  if (!graphicsStore.models) {
+    models = await loadModelsFromJson(jsonUrl, canvasTexture)
+    graphicsStore.setModels(markRaw(models))
+  } else {
+    models = graphicsStore.models
+  }
+  const modelGroup = new THREE.Group()
+  modelGroup.name = 'modelGroup'
+  models.forEach(model => {
+    modelGroup?.add(model)
+  })
+
+  // Комната
+  const room = new Room(1, 1, 5, -1)
+  result.room = new THREE.Group()
+  result.room.name = 'roomGroup'
+  result.room.add(room)
+
+  // Стол
+  // --- габариты модели ---
+  const box = new THREE.Box3().setFromObject(modelGroup)
+  const size = box.getSize(new THREE.Vector3()) // w, h, d
+  const wallHeight = 100
+  const tableHeight = size.y/5
+  const tableDepth = size.x*6
+  const tableWidth = size.x*6
+  const table = new Table(tableWidth, tableDepth, tableHeight, wallHeight) // ширина=100, глубина=10, высота=1
+  table.position.set(0, -size.y/2-tableHeight/2-tableHeight*0.03, tableDepth/3)
+
+  const tableGroup = new THREE.Group()
+  tableGroup.name = 'tableGroup'
+  tableGroup.add(table)
+
+  result.pivotGroup = new THREE.Group()
+  result.pivotGroup.name = 'pivotGroup'
+  result.pivotGroup.add(modelGroup)
+  result.pivotGroup.add(tableGroup)
+
+  return result
+}
+
+export async function fillScene(scene: THREE.Scene, modelJsonUrl: string): Promise<void> {
+  //Свет
+  const lights = getLights()
+  lights.forEach(light => { scene.add(light) })
+
+  // Модели
+  const models = await getSceneModels(modelJsonUrl)
+  if (models) {
+    for (const model of Object.values(models)) {
+      scene.add(model)
+    }
+  } else {
+    console.error('Не удалось загрузить модели для сцены!')
+  }
+}
 
 export function initScene(container: HTMLElement): void {
   const width = container.clientWidth
@@ -83,13 +172,13 @@ export function initScene(container: HTMLElement): void {
 
   //Создаем перспективную камеру
   function getAspect() {
-    return container.clientWidth / container.clientHeight;
+    return container.clientWidth / container.clientHeight
   }
 
-  const aspect = getAspect();
+  const aspect = getAspect()
 
-  camera = new THREE.PerspectiveCamera(35, aspect, 0.1, 1000);
-  camera.position.z = 8;
+  camera = new THREE.PerspectiveCamera(35, aspect, 0.1, 1000)
+  camera.position.z = 8
 
   //Создаем орто камеру
 
@@ -100,47 +189,47 @@ export function initScene(container: HTMLElement): void {
     -frustumSize / 2,
     0.1,
     1000
-  );
-  orthoCamera.position.copy(camera.position);
-  orthoCamera.lookAt(0, 0, 0);
+  )
+  orthoCamera.position.copy(camera.position)
+  orthoCamera.lookAt(0, 0, 0)
 
   //Активная камера
-  activeCamera = orthoCamera;
+  activeCamera = orthoCamera
 
     // Сохраняем активную камеру в Pinia
-  graphicsStore.setActiveCamera(markRaw(activeCamera));
+  graphicsStore.setActiveCamera(markRaw(activeCamera))
 
   //Рендеринг
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setSize(width, height)
   container.appendChild(renderer.domElement)
-  renderer.setClearColor(0xFFDAB9);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.9;
+  renderer.setClearColor(0xFFDAB9)
+  renderer.outputColorSpace = THREE.SRGBColorSpace
+  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure = 0.9
 
   //console.log('Renderer initialized and appended');
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = true
   // renderer.shadowMap.type = THREE.BasicShadowMap; // быстрые но "жесткие" тени без фильтрации
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   //Для загрузки EXR
-  pmremGenerator = new PMREMGenerator(renderer);
-  pmremGenerator.compileEquirectangularShader();
+  pmremGenerator = new PMREMGenerator(renderer)
+  pmremGenerator.compileEquirectangularShader()
 
   // Создаём controls один раз для текущей activeCamera
-  controls = new OrbitControls(activeCamera, renderer.domElement);
-  controls.enableDamping = true;
+  controls = new OrbitControls(activeCamera, renderer.domElement)
+  controls.enableDamping = true
   controls.dampingFactor = 0.1
-  controls.enabled = true; // Всегда включены
-  controls.reset(); // сбрасывает вращение камеры
-  controls.target.set(0, 0, 0);
+  controls.enabled = true // Всегда включены
+  controls.reset() // сбрасывает вращение камеры
+  controls.target.set(0, 0, 0)
 
 
   // По умолчанию OrbitControls отвечают только за зум и панорамирование, вращение отключено
-  controls.enableRotate = true;
-  controls.enablePan = true;
-  controls.enableZoom = true;
+  controls.enableRotate = true
+  controls.enablePan = true
+  controls.enableZoom = true
 
   // Настройка кнопок мыши для удобства:
   // Левая кнопка - панорамирование (чтобы не конфликтовать с ручным вращением модели)
@@ -150,77 +239,41 @@ export function initScene(container: HTMLElement): void {
     LEFT: THREE.MOUSE.ROTATE,
     MIDDLE: THREE.MOUSE.DOLLY,
     RIGHT: THREE.MOUSE.PAN,
-  };
+  }
 
-  controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI;
-  controls.minAzimuthAngle = -Infinity;
-  controls.maxAzimuthAngle = Infinity;
+  controls.minPolarAngle = 0
+  controls.maxPolarAngle = Math.PI
+  controls.minAzimuthAngle = -Infinity
+  controls.maxAzimuthAngle = Infinity
 
-  controls.update();
+  controls.update()
 
   //console.log('OrbitControls initialized with rotate disabled (manual rotation mode)');
 
 
- fixedPerspectiveCameraState = {
+ /*fixedPerspectiveCameraState = {
     position: camera.position.clone(),
     quaternion: camera.quaternion.clone(),
     zoom: 2, //camera.zoom,
     fov: camera.fov,
     controlsTarget: controls.target.clone(),
 
-  };
+  }*/
 
   //Выводим группы на сцену
 
   // scene.add(tableGroup);
 
+  /*
   scene.add(pivotGroup);
 
   //Добавляем группы в пивот группу
   pivotGroup.add(modelGroup);
   // pivotGroup.add(tableGroup);
 
-
-
-
   //Свет
-
- const directionalLight = new THREE.DirectionalLight(0xffffff, 20);
-directionalLight.position.set(1, 0.8, 0);
-directionalLight.castShadow = true;
-
-const d = 1.5;
-directionalLight.shadow.camera.left = -d;
-directionalLight.shadow.camera.right = d;
-directionalLight.shadow.camera.top = d;
-directionalLight.shadow.camera.bottom = -d;
-directionalLight.shadow.camera.near = 0.1;
-directionalLight.shadow.camera.far = 4; // уменьшено с 10 до 4
-
-directionalLight.shadow.bias = -0.005;
-directionalLight.shadow.normalBias = 0.05;
-
-directionalLight.shadow.mapSize.width = 2048;
-directionalLight.shadow.mapSize.height = 2048;
-
-directionalLight.shadow.camera.updateProjectionMatrix();
-
-scene.add(directionalLight);
-
-const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
-// scene.add(helper);
-
-  const directional1 = new THREE.DirectionalLight(0xffffff, 3);
-  directional1.position.set(0, 1, -1);
-  scene.add(directional1);
-
-  const ambientLight = new THREE.AmbientLight(0xffffff, 3);
-  scene.add(ambientLight);
-
-  const hemiLight = new THREE.HemisphereLight (0xffffff, 2);
-  scene.add(hemiLight);
-
+  const lights = getLights()
+  lights.forEach(light => { scene.add(light) })
 
   //Объекты сцены
 
@@ -232,33 +285,20 @@ const helper = new THREE.CameraHelper(directionalLight.shadow.camera);
   //Стол
   scene.add(tableGroup)
   tableGroup.visible = false
-
-  const sphere = new THREE.Mesh(
+  */
+  /*const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
     new THREE.MeshToonMaterial({ color: 0xfbb03b })
   )
-  sphere.position.set(0.5, 0.5, 0)
+  sphere.position.set(0.5, 0.5, 0)*/
   // tableGroup.add(sphere)
 
   window.addEventListener('resize', () => {
     onWindowResize(container)
   })
 
-  /*const textureStore = useTextureStore();
-
-  watch(
-    () => textureStore.canvasTexture,
-    (canvasTexture) => {
-      if (canvasTexture && renderer && scene && activeCamera) {
-        canvasTexture.needsUpdate = true;
-        const { isAnimationActive } = useGraphicsStore()
-        if (isAnimationActive) renderer.render(scene, activeCamera);
-        //console.log('Three.js сцена отрендерена после обновления текстуры');
-      }
-    }
-  );*/
-
-  animate()
+  //animate()
+  renderer.render(scene, activeCamera)
 }
 
 export function switchScene(to: 'perspective' | 'ortho', scn: THREE.Scene = scene): void {
@@ -374,8 +414,9 @@ export function setModelRotation(view: 'front' | 'back' | 'right' | 'left' | 'to
   }
 
   pivotGroup.quaternion.setFromEuler(euler)*/
+  const pivotGroup = scene.getObjectByName('pivotGroup') as THREE.Group
   setModelView(pivotGroup, view)
-  setModelView(tableGroup, view)
+  //setModelView(tableGroup, view)
 
   // Обновление слайдера (без зацикливания)
   if (uiControls?.setRotationSliderValue) {
@@ -390,6 +431,9 @@ export function setModelRotation(view: 'front' | 'back' | 'right' | 'left' | 'to
 
 //Вращение слайдером
 export function setModelRotationAngle(degrees: number) {
+  const modelGroup = scene.getObjectByName('modelGroup') as THREE.Group
+  const pivotGroup = scene.getObjectByName('pivotGroup') as THREE.Group
+
   if (!modelGroup || !pivotGroup) {
     console.warn('[setModelRotationAngle] modelGroup или pivotGroup не инициализированы')
     return
@@ -414,7 +458,10 @@ export function setModelRotationAngle(degrees: number) {
 
 //Вписывание модели в окно
 export function fitModelToView() {
-  //console.log('[fitModelToView] triggered')
+  const modelGroup = scene.getObjectByName('modelGroup') as THREE.Group
+  const pivotGroup = scene.getObjectByName('pivotGroup') as THREE.Group
+
+  if (!modelGroup || !pivotGroup) return
 
   pivotGroup.quaternion.identity() // сброс поворота
 
@@ -545,6 +592,7 @@ export async function loadTexture(url: string, isEXR: boolean = true): Promise<T
       url,
       (loadedTexture) => {
         loadedTexture.mapping = THREE.EquirectangularReflectionMapping
+        useGraphicsStore().setEnvTexture(loadedTexture)
         resolve(loadedTexture)
       },
       undefined,
@@ -564,12 +612,18 @@ export async function loadEnvironmentMap(
   activeCamera: THREE.Camera,
   isEXR: boolean = true
 ): Promise<void> {
-  if (!texture) {
+  let texture
+  if (!useGraphicsStore().envTexture) {
     texture = await loadTexture(url, isEXR)
+    //useGraphicsStore().setEnvTexture(texture)
+  } else {
+    texture = useGraphicsStore().envTexture
   }
-  envMap = pmremGenerator.fromEquirectangular(texture).texture
-  scene.environment = envMap
-  scene.background = envMap
+  if (texture) {
+    envMap = pmremGenerator.fromEquirectangular(texture).texture
+    scene.environment = envMap
+    scene.background = envMap
+  }
 
   /*return new Promise((resolve, reject) => {
     const loader = isEXR ? new EXRLoader() : new RGBELoader()
@@ -593,7 +647,53 @@ export async function loadEnvironmentMap(
   })*/
 }
 
+function cleanScene(scene: THREE.Scene): void {
+  scene.traverse(object => {
+    if (object instanceof THREE.Mesh) {
+      // Освобождаем геометрию
+      if (object.geometry) {
+        object.geometry.dispose()
+      }
+
+      // Освобождаем материалы
+      if (object.material) {
+        if (Array.isArray(object.material)) {
+          object.material.forEach(material => material.dispose())
+        } else {
+          object.material.dispose()
+        }
+      }
+
+      // Освобождаем текстуры
+      if (object.material && object.material.map) {
+        object.material.map.dispose()
+      }
+    }
+  })
+
+  // Удаляем все объекты
+  while(scene.children.length > 0) {
+    scene.remove(scene.children[0])
+  }
+}
+
+function awaitNextFrame() {
+  return new Promise(resolve => {
+    requestAnimationFrame(resolve)
+  })
+}
+
 export async function loadSceneModels(jsonUrl: string, canvasTexture: THREE.CanvasTexture) {
+  useGraphicsStore().setAnimationActive(false)
+  await awaitNextFrame()
+  cleanScene(scene)
+  await fillScene(scene, jsonUrl)
+  fitModelToView()
+  switchScene('ortho')
+  useGraphicsStore().setAnimationActive(true)
+  animate()
+
+  /*
   //console.log('loadSceneModels, старт')
   const models = await loadModelsFromJson(jsonUrl, canvasTexture)
   //console.log('loadSceneModels, модели загружены')
@@ -615,10 +715,11 @@ export async function loadSceneModels(jsonUrl: string, canvasTexture: THREE.Canv
   table.position.set(0, -size.y/2-tableHeight/2-tableHeight*0.03, tableDepth/3);
 
   tableGroup.add(table);
+  */
 }
 
 
-export function getModelDimensions(): { size: THREE.Vector3; center: THREE.Vector3 } | null {
+export function getModelDimensions(modelGroup: THREE.Group): { size: THREE.Vector3; center: THREE.Vector3 } | null {
   if (modelGroup?.children?.length) {
     const box = new THREE.Box3().setFromObject(modelGroup)
     const size = box.getSize(new THREE.Vector3()) // w, h, d
@@ -631,29 +732,32 @@ export function getModelDimensions(): { size: THREE.Vector3; center: THREE.Vecto
 
 export function calcModelShaders(time?: number) {
   const t = (time ?? performance.now()) * 0.001;
+  const modelGroup = scene.getObjectByName('modelGroup') as THREE.Group
 
-  modelGroup.traverse(child => {
-    if ((child as THREE.Mesh).isMesh) {
-      const mesh = child as THREE.Mesh
-      const mat = mesh.material
-      if (mat) {
-        const materials = Array.isArray(mat) ? mat : [mat]
-        materials.forEach(material => {
-          if (material.userData.shader && material.userData.shader.uniforms.time) {
-            material.userData.shader.uniforms.time.value = t
-            // НЕ менять clearcoat и envMapIntensity напрямую в цикле
-            // НЕ ставить material.needsUpdate = true;
-          }
-        })
+  if (modelGroup) {
+    modelGroup.traverse(child => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh
+        const mat = mesh.material
+        if (mat) {
+          const materials = Array.isArray(mat) ? mat : [mat]
+          materials.forEach(material => {
+            if (material.userData.shader && material.userData.shader.uniforms.time) {
+              material.userData.shader.uniforms.time.value = t
+              // НЕ менять clearcoat и envMapIntensity напрямую в цикле
+              // НЕ ставить material.needsUpdate = true;
+            }
+          })
+        }
       }
-    }
-  })
+    })
+  }
 }
 
 function animate(time?: number) {
-  requestAnimationFrame(animate)
   const { isAnimationActive } = useGraphicsStore()
   if (isAnimationActive) {
+    requestAnimationFrame(animate)
     calcModelShaders(time)
     controls.update()
     renderer.render(scene, activeCamera)

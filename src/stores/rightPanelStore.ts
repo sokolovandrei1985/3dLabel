@@ -7,7 +7,7 @@ import {
   switchCamera,
   setModelRotation,
   setModelRotationAngle,
-  fitModelToView,
+  fitModelToView as fitToView,
   pmremGenerator,
   renderer,
   scene,
@@ -105,7 +105,7 @@ export const useRightPanelStore = defineStore('rightPanelStore', () => {
   }
 
   const fitModelToView = (): void => {
-    fitModelToView()
+    fitToView()
   }
 
   const loadModel = async (): Promise<void> => {

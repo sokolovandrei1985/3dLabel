@@ -28,7 +28,7 @@ const containerRef = ref<HTMLElement | null>(null)
 const dimensions = ref({ left: 0, top: 0, bottom: 0, right: 0 })
 
 const percent = computed(() => props.totalSteps !== undefined && props.currentStep !== undefined ? Math.floor(props.currentStep * 100 / props.totalSteps) : 100)
-const contentStyle = computed(() => ({ minWidth: props.width }))
+const contentStyle = computed(() => ({ width: props.width }))
 
 const updateDimensions = () => {
   if (!containerRef.value || !props.show) return
