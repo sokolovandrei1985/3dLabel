@@ -46,8 +46,8 @@ export class IndexedDBService implements DatabaseService {
       const transaction = db.transaction([STORE_NAME], 'readwrite')
       const store = transaction.objectStore(STORE_NAME)
 
-      // Генерируем ID как timestamp с точностью до 100мс
-      const id = Math.floor(Date.now() / 100) * 100
+      // Генерируем ID как timestamp с точностью до 1мс
+      const id = Math.floor(Date.now())
       const record: StateRecord = { id, state }
 
       const request = store.add(record)

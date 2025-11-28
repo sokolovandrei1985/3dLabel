@@ -15,6 +15,11 @@ export interface IShadow {
   offsetY: number
 }
 
+export interface IScale {
+  scaleX: number
+  scaleY: number
+}
+
 interface SingleProp {
   angle: number | null
   opacity: number | null
@@ -44,11 +49,11 @@ export interface IGroup extends BaseProp {
   size: number
 }
 
-export interface IImage extends BaseProp, SingleProp, ImageProp {}
+export interface IImage extends BaseProp, SingleProp, ImageProp, IScale {}
 
 export interface IRect extends BaseProp, SingleProp, RectangleProp {}
 
-export interface IText extends BaseProp, SingleProp, TextProp {}
+export interface IText extends BaseProp, SingleProp, TextProp, IScale {}
 
 // Базовый класс для общих свойств
 class BaseObject implements BaseProp {
@@ -94,10 +99,14 @@ export class Group extends BaseObject {
 // Класс Image
 export class Image extends SingleObject implements IImage {
   fileName: string
+  scaleX: number
+  scaleY: number
 
   constructor(params: IImage) {
     super(params)
     this.fileName = params.fileName
+    this.scaleX = params.scaleX
+    this.scaleY = params.scaleY
   }
 }
 
@@ -125,6 +134,8 @@ export class Text extends SingleObject implements IText {
   fontFamily: string
   fontSize: number
   fill: string
+  scaleX: number
+  scaleY: number
 
   constructor(params: IText) {
     super(params)
@@ -132,6 +143,8 @@ export class Text extends SingleObject implements IText {
     this.fontFamily = params.fontFamily
     this.fontSize = params.fontSize
     this.fill = params.fill
+    this.scaleX = params.scaleX
+    this.scaleY = params.scaleY
   }
 }
 

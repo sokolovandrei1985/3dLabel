@@ -4,16 +4,16 @@
     <a-divider style="margin: 0">Действия</a-divider>
     <div class="add-object-buttons">
       <a-tooltip placement="top" title="Отменить">
-        <a-button size="large" :icon="h(UndoOutlined)" :disabled="!canUndo" @click="undo"/>
+        <a-button size="large" :icon="h(UndoOutlined)" :disabled="!canUndo" v-blur-after-click @click="undo"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Повторить">
-        <a-button size="large" :icon="h(RedoOutlined)" :disabled="!canRedo" @click="redo"/>
+        <a-button size="large" :icon="h(RedoOutlined)" :disabled="!canRedo" v-blur-after-click @click="redo"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Копировать">
-        <a-button size="large" :icon="h(CopyOutlined)" :disabled="!hasSelectedObject" @click="copy"/>
+        <a-button size="large" :icon="h(CopyOutlined)" :disabled="!hasSelectedObject" v-blur-after-click @click="copy"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Вставить">
-        <a-button size="large" :icon="h(pasteIcon)" :disabled="!hasObjectInClipboard" @click="paste"/>
+        <a-button size="large" :icon="h(pasteIcon)" :disabled="!hasObjectInClipboard" v-blur-after-click @click="paste"/>
       </a-tooltip>
     </div>
 
@@ -21,16 +21,16 @@
     <a-divider style="margin: 0">Добавить/Удалить объект</a-divider>
     <div class="add-object-buttons">
       <a-tooltip placement="top" title="Изображение">
-        <a-button size="large" :icon="h(PictureOutlined)" @click="onAddImage"/>
+        <a-button size="large" :icon="h(PictureOutlined)" v-blur-after-click @click="onAddImage"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Прямоугольник">
-        <a-button size="large" :icon="h(BorderOutlined)" @click="onAddRect"/>
+        <a-button size="large" :icon="h(BorderOutlined)" v-blur-after-click @click="addRect"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Текст">
-        <a-button size="large" :icon="h(FontSizeOutlined)" @click="onAddText"/>
+        <a-button size="large" :icon="h(FontSizeOutlined)" v-blur-after-click @click="addText"/>
       </a-tooltip>
       <a-tooltip placement="top" title="Удалить выбранное">
-        <a-button size="large" danger :disabled="!activeObject" :icon="h(DeleteOutlined)" @click="onDeleteSelected"/>
+        <a-button size="large" danger :disabled="!activeObject" :icon="h(DeleteOutlined)" v-blur-after-click @click="removeSelected"/>
       </a-tooltip>
     </div>
 
@@ -38,16 +38,16 @@
     <a-divider style="margin: 0">Переместить объект</a-divider>
     <div class="add-object-buttons">
       <a-tooltip placement="top" title="На передний план">
-        <a-button size="large" :disabled="!activeObject" :icon="h(toFront)" @click="moveObjects('bringToFront')"/>
+        <a-button size="large" :disabled="!activeObject" :icon="h(toFront)" v-blur-after-click @click="changeObjectLayer('bringToFront')"/>
       </a-tooltip>
       <a-tooltip placement="top" title="На задний план">
-        <a-button size="large" :disabled="!activeObject" :icon="h(toBack)" @click="moveObjects('sendToBack')"/>
+        <a-button size="large" :disabled="!activeObject" :icon="h(toBack)" v-blur-after-click @click="changeObjectLayer('sendToBack')"/>
       </a-tooltip>
       <a-tooltip placement="top" title="На уровень ниже">
-        <a-button size="large" :disabled="!activeObject" :icon="h(VerticalAlignBottomOutlined)" @click="moveObjects('sendBackwards')"/>
+        <a-button size="large" :disabled="!activeObject" :icon="h(VerticalAlignBottomOutlined)" v-blur-after-click @click="changeObjectLayer('sendBackwards')"/>
       </a-tooltip>
       <a-tooltip placement="top" title="На уровень выше">
-        <a-button size="large" :disabled="!activeObject" :icon="h(VerticalAlignTopOutlined)" @click="moveObjects('bringForward')"/>
+        <a-button size="large" :disabled="!activeObject" :icon="h(VerticalAlignTopOutlined)" v-blur-after-click @click="changeObjectLayer('bringForward')"/>
       </a-tooltip>
     </div>
 
@@ -95,7 +95,7 @@ const {
   addSVG,
   addImage,
   removeSelected,
-  moveObjects,
+  changeObjectLayer,
   copy,
   paste,
 } = fabricStore
@@ -108,18 +108,6 @@ const { canUndo, canRedo } = storeToRefs(applicationStore)
 
 const onAddImage = async (): Promise<void> => {
   fileInput.value?.click()
-}
-
-const onAddRect = (): void => {
-  addRect()
-}
-
-const onAddText = (): void => {
-  addText()
-}
-
-const onDeleteSelected = (): void => {
-  removeSelected()
 }
 
 const onSelectFile = async (e: Event): Promise<void> => {

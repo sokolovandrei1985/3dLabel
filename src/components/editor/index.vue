@@ -54,16 +54,62 @@ import TextSection from './TextSection.vue'
 import ActionButtons from './ActionButtons.vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
+import { useKeyboard } from '@/composables/useKeyboard'
+import { undo, redo } from '@/services/useUndoRedo'
 
 const store = useFabricStore()
 const { activeObject } = storeToRefs(store)
-const { updateActiveObject } = store
+const {
+  updateActiveObject,
+  removeSelected,
+  discardSelection,
+  copy,
+  paste,
+  getNextFabricObject,
+} = store
 const type = computed(() => activeObject.value?.type || null)
 
 const updateObject = (obj: object) => {
   updateActiveObject(obj)
 }
+
+const { handleKeyDown, handleKeyUp, clearAllTimers } = useKeyboard(
+  {
+    onEscape: discardSelection,
+    onTab: getNextFabricObject,
+    onShiftTab: () => { getNextFabricObject(true) },
+    onDelete: removeSelected,
+    onCtrlZ: undo,
+    onCtrlY: redo,
+    onCopy: copy,
+    onPaste: paste,
+    onArrowUp: () => { updateObject({ top: (activeObject.value?.top || 0) - 1 }) },
+    onArrowDown: () => { updateObject({ top: (activeObject.value?.top || 0) + 1 }) },
+    onArrowLeft: () => { updateObject({ left: (activeObject.value?.left || 0) - 1 }) },
+    onArrowRight: () => { updateObject({ left: (activeObject.value?.left || 0) + 1 }) }
+  },
+  {
+    containerSelector: '#app3dl'
+  }
+)
+
+onMounted(() => {
+  const app = document.querySelector('#app3dl') as HTMLElement
+  if (app) {
+    app.addEventListener('keydown', handleKeyDown)
+    app.addEventListener('keyup', handleKeyUp)
+  }
+})
+
+onUnmounted(() => {
+  const app = document.querySelector('#app3dl') as HTMLElement
+  if (app) {
+    app.removeEventListener('keydown', handleKeyDown)
+    app.removeEventListener('keyup', handleKeyUp)
+  }
+  clearAllTimers()
+})
 
 </script>
 

@@ -5,6 +5,7 @@ import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
 import type { Ref } from 'vue'
 import { useEvents } from '@/composables/useEvents.ts'
+import throttle from 'lodash.throttle'
 
 /*const appStore = useApplicationStore()
 const { isIndexedDbAvailable } = storeToRefs(appStore)
@@ -21,6 +22,9 @@ let currentStateId: number = 0
 let skipUdate: boolean = false
 
 const MAX_STATE_COUNT = 10
+const throttledSaveState = throttle(() => {
+  saveState()
+}, 200)
 
 export async function initUndoRedoService(): Promise<void> {
   appStore = useApplicationStore()
@@ -39,7 +43,8 @@ export async function initUndoRedoService(): Promise<void> {
         if (skipUdate) {
           skipUdate = false
         } else {
-          saveState()
+          //saveState()
+          throttledSaveState()
         }
       })
     } catch (e) {
@@ -52,7 +57,7 @@ export async function initUndoRedoService(): Promise<void> {
 }
 
 export async function saveState(): Promise<number | null> {
-  console.log('save state')
+  console.log('saveState')
   if (isIndexedDbAvailable?.value) {
     try {
       await dbService.removeRowsAfter(currentStateId)
@@ -66,6 +71,7 @@ export async function saveState(): Promise<number | null> {
         count = await dbService.getCount()
       }
       setUndoState!(count > 1)
+      //console.log('save state', currentStateId, count)
       return currentStateId
     } catch (e) {
       console.error('Ошибка при сохранении состояния в IndexedDB!', e)
@@ -75,12 +81,12 @@ export async function saveState(): Promise<number | null> {
 }
 
 export async function undo(): Promise<string | null> {
-  console.log('undo')
   if (isIndexedDbAvailable?.value) {
     try {
       const prevState = await dbService.getPrevRow(currentStateId)
       if (typeof prevState === 'object') {
         const { id, state } = prevState as StateRecord
+        //console.log('undo', currentStateId, id, state)
         currentStateId = id
         setRedoState!(true)
         skipUdate = true
@@ -98,12 +104,12 @@ export async function undo(): Promise<string | null> {
 }
 
 export async function redo(): Promise<string | null> {
-  console.log('redo')
   if (isIndexedDbAvailable?.value) {
     try {
       const nextState = await dbService.getNextRow(currentStateId)
       if (typeof nextState === 'object') {
         const { id, state } = nextState as StateRecord
+        //console.log('redo', currentStateId, id, state)
         currentStateId = id
         setUndoState!(true)
         skipUdate = true

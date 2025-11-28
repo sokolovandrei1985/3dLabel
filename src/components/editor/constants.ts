@@ -48,8 +48,8 @@ export const NEW_OBJECT_DEFAULTS = {
 
 export const DEFAULT_TEXTBOX_WIDTH_RATIO = 0.6
 
-export type ObjectMoveType = 'bringForward' | 'bringToFront' | 'sendBackwards' | 'sendToBack'
-export const OBJECT_MOVE_METHODS: Record<ObjectMoveType, string> = {
+export type ChangeLayerType = 'bringForward' | 'bringToFront' | 'sendBackwards' | 'sendToBack'
+export const CHANGE_LAYER_METHODS: Record<ChangeLayerType, string> = {
   bringForward: 'bringObjectForward',
   bringToFront: 'bringObjectToFront',
   sendBackwards: 'sendObjectBackwards',

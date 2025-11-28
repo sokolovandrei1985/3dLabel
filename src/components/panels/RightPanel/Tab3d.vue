@@ -54,6 +54,7 @@
 import { CamTypes, ModelViews } from './constants'
 import { useRightPanelStore } from '@/stores/rightPanelStore'
 import { storeToRefs } from 'pinia'
+import type { CameraKey, ModelViewKey } from '@/types/camera'
 
 const store = useRightPanelStore()
 
@@ -77,11 +78,11 @@ const {
 } = store
 
 const onCamTypeChange = (event: Event): void => {
-  setActiveCameraType((event.target as HTMLInputElement).value)
+  setActiveCameraType((event.target as HTMLInputElement).value as CameraKey)
 }
 
 const onModelViewChange = (event: Event): void => {
-  setActiveModelView((event.target as HTMLInputElement).value)
+  setActiveModelView((event.target as HTMLInputElement).value as ModelViewKey)
 }
 
 const onResetView = (): void => {

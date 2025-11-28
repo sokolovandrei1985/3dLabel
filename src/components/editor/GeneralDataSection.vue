@@ -4,16 +4,17 @@
 
       <span>Координаты</span>
       <div class="coordinate-inputs">
-        <a-input-number
-          v-model:value="left"
+        <NumberInput
+          :value="left"
           addon-before="X"
           placeholder="X"
           :controls="false"
           :min="0"
           :max="canvasSize?.width || Infinity"
           class="coord-input"
+          @change="(value) => update('left', value ?? 0)"
         />
-        <a-input-number
+        <NumberInput
           v-model:value="top"
           addon-before="Y"
           placeholder="Y"
@@ -21,26 +22,51 @@
           :min="0"
           :max="canvasSize?.height || Infinity"
           class="coord-input"
+          @change="(value) => update('top', value ?? 0)"
         />
       </div>
 
       <span>Размер</span>
       <div class="size-inputs">
-        <a-input-number
+        <NumberInput
           v-model:value="width"
           addon-before="Ш"
           placeholder="Ширина"
           :controls="false"
           :min="1"
           class="size-input"
+          @change="(value) => update('width', value)"
         />
-        <a-input-number
+        <NumberInput
           v-model:value="height"
           addon-before="В"
           placeholder="Высота"
           :controls="false"
           :min="1"
           class="size-input"
+          @change="(value) => update('height', value)"
+        />
+      </div>
+
+      <span v-if="isShowScale">Масштаб</span>
+      <div v-if="isShowScale" class="size-inputs">
+        <NumberInput
+          v-model:value="scaleX"
+          addon-before="X"
+          placeholder="X"
+          :controls="false"
+          :min="1"
+          class="size-input"
+          @change="(value) => update('scaleX', value)"
+        />
+        <NumberInput
+          v-model:value="scaleY"
+          addon-before="Y"
+          placeholder="Y"
+          :controls="false"
+          :min="1"
+          class="size-input"
+          @change="(value) => update('scaleY', value)"
         />
       </div>
 
@@ -85,6 +111,7 @@
 import { computed } from 'vue'
 import { useFabricStore } from '@/stores/fabric'
 import { storeToRefs } from 'pinia'
+import NumberInput from './NumberInput.vue'
 
 const emit = defineEmits([
   'update'
@@ -96,6 +123,7 @@ const update = (field: string, value: number): void => {
 
 const store = useFabricStore()
 const { activeObject, canvasSize } = storeToRefs(store)
+const isShowScale = computed(() => activeObject.value?.type === 'textbox' || activeObject.value?.type === 'image')
 
 const left = computed({
   get: () => Math.round(activeObject.value?.left || 0),
@@ -115,6 +143,16 @@ const width = computed({
 const height = computed({
   get: () => Math.round(activeObject.value?.height || 0),
   set: (value) => update('height', value)
+})
+
+const scaleX = computed({
+  get: () => Math.round((activeObject.value?.scaleX || 0) * 1000) / 1000,
+  set: (value) => update('scaleX', value)
+})
+
+const scaleY = computed({
+  get: () => Math.round((activeObject.value?.scaleY || 0) * 1000) / 1000,
+  set: (value) => update('scaleY', value)
 })
 
 const angle = computed({

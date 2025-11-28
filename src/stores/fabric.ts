@@ -11,12 +11,22 @@ import {
   DEFAULT_SHADOW,
   NEW_OBJECT_DEFAULTS,
   DEFAULT_TEXTBOX_WIDTH_RATIO,
-  OBJECT_MOVE_METHODS
+  CHANGE_LAYER_METHODS
 } from '@/components/editor/constants'
-import type { ObjectMoveType } from '@/components/editor/constants'
+import type { ChangeLayerType } from '@/components/editor/constants'
 import { useImageFiles } from '@/stores/imageFiles'
 import { useGlobalConfigStore } from '@/stores/globalConfig'
 import { useEvents } from '@/composables/useEvents.ts'
+import { initAligningGuidelines } from 'fabric/extensions'
+
+const aligningGuidelinesConfig = {
+  /** At what distance from the shape does alignment begin? */
+  margin: 4,
+  /** Aligning line dimensions */
+  width: 1,
+  /** Aligning line color */
+  color: 'rgb(255,0,0,0.7)',
+}
 
 // добавляем кастомное свойство для хранения имени файла в хранилище imageFiles
 FabricImage.customProperties.push('fileName')
@@ -29,6 +39,7 @@ export const useFabricStore = defineStore('fabric', () => {
   const { emit } = useEvents()
   const isLoading = ref<boolean>(false)
   const clipboard = shallowRef<FabricObjectType | null>(null)
+  const isDeserializing = ref<boolean>(false)
   //const throttleTimeout = ref<ReturnType<typeof setTimeout> | null>(null)
   //const rawActiveObject = ref<any>(null)
 
@@ -55,6 +66,9 @@ export const useFabricStore = defineStore('fabric', () => {
       })
       fabricCanvas.setDimensions({ width, height }, { backstoreOnly: true })
       setCanvas(fabricCanvas)
+
+      // TODO: Добавить возможность включать/выключать и настраивать цвет
+      const deactivate = initAligningGuidelines(fabricCanvas, aligningGuidelinesConfig)
 
       console.log('[Fabric] Канвас инициализирован:', fabricCanvas)
       return fabricCanvas
@@ -88,6 +102,7 @@ export const useFabricStore = defineStore('fabric', () => {
   }
 
   function emitUpdateEvent(): void {
+    if (isDeserializing.value) return
     emit('fabric:update')
     //throttleTimeout.value = null
   }
@@ -96,7 +111,7 @@ export const useFabricStore = defineStore('fabric', () => {
     if (!canvas.value) return
     const canvasActiveObject: any = canvas.value.getActiveObject()
     if (!canvasActiveObject) return
-    const { type, left, top, /*width, height,*/ shadow, angle, opacity, fill, stroke, strokeWidth, strokeDashArray, rx, ry, fontFamily, fontSize, text, fileName } = canvasActiveObject
+    const { type, left, top, /*width, height,*/ shadow, angle, opacity, fill, stroke, strokeWidth, strokeDashArray, rx, ry, fontFamily, fontSize, text, fileName, scaleX, scaleY } = canvasActiveObject
 
     //const originCoords = canvasActiveObject.getPointByOrigin('left', 'top')
 
@@ -131,6 +146,8 @@ export const useFabricStore = defineStore('fabric', () => {
       top,
       width: canvasActiveObject.getScaledWidth(),
       height: canvasActiveObject.getScaledHeight(),
+      scaleX,
+      scaleY,
       angle,
       opacity,
       shadow: shadowObj,
@@ -217,7 +234,7 @@ export const useFabricStore = defineStore('fabric', () => {
       strokeUniform: true,
       selectable: true,
       centeredRotation: true,
-      centeredScaling: true
+      //centeredScaling: true
     })
 
     canvas.value.add(rect)
@@ -237,9 +254,13 @@ export const useFabricStore = defineStore('fabric', () => {
       originX: 'center',
       originY: 'center',
       editable: true,
-      lockScalingX: true,
       splitByGrapheme: false,
-      textAlign: 'left'
+      textAlign: 'left',
+      lockScalingX: false,
+      lockScalingY: false,
+      lockRotation: false,
+      lockUniScaling: false,
+      lockScalingFlip: false,
     })
     canvas.value.add(tb)
     canvas.value.setActiveObject(tb)
@@ -256,6 +277,8 @@ export const useFabricStore = defineStore('fabric', () => {
     const { objects, options } = await loadSVGFromString(imageContent)
     const validObjects = objects.filter((obj) => obj !== null)
     const svgGroup = util.groupSVGElements(validObjects, options)
+    svgGroup.originX = 'center'  // необходимо для корректного вращения
+    svgGroup.originY = 'center'
     canvas.value.add(svgGroup)
     canvas.value.setActiveObject(svgGroup)
     canvas.value.requestRenderAll()
@@ -318,9 +341,9 @@ export const useFabricStore = defineStore('fabric', () => {
     canvas.value.requestRenderAll()
   }
 
-  function moveObjects(moveType: ObjectMoveType): void {
+  function changeObjectLayer(moveType: ChangeLayerType): void {
     if (!canvas.value) return
-    const method = ((canvas.value as any)[OBJECT_MOVE_METHODS[moveType]] as Function).bind(canvas.value)
+    const method = ((canvas.value as any)[CHANGE_LAYER_METHODS[moveType]] as Function).bind(canvas.value)
     const activeObject = canvas.value.getActiveObject()
     if (!activeObject) return
 
@@ -334,6 +357,12 @@ export const useFabricStore = defineStore('fabric', () => {
     } else {
       method(activeObject)
     }
+    //canvas.value.discardActiveObject()
+    canvas.value.requestRenderAll()
+  }
+
+  function discardSelection(): void {
+    if (!canvas.value) return
     canvas.value.discardActiveObject()
     canvas.value.requestRenderAll()
   }
@@ -347,10 +376,12 @@ export const useFabricStore = defineStore('fabric', () => {
     if (!canvas.value) return
     isLoading.value = true
     try {
+      isDeserializing.value = true
       await canvas.value.loadFromJSON(data)
       canvas.value.requestRenderAll()
       // Принудительно вызываем обновление текустуры на модели
       requestAnimationFrame(() => {
+        isDeserializing.value = false
         emitUpdateEvent()
       })
     } finally {
@@ -393,6 +424,28 @@ export const useFabricStore = defineStore('fabric', () => {
     canvas.value.requestRenderAll()
   }
 
+  function getNextFabricObject(prev: boolean = false): void {
+    if (!canvas.value) return
+
+    const objects = canvas.value.getObjects()
+    if (objects.length === 0) return
+
+    const activeObject = canvas.value.getActiveObject()
+    let nextIndex = prev ? objects.length - 1 : 0
+
+    if (activeObject && objects.includes(activeObject)) {
+      const currentIndex = objects.indexOf(activeObject)
+      if (prev) {
+        nextIndex = currentIndex === 0 ? objects.length - 1 : currentIndex - 1
+      } else {
+        nextIndex = currentIndex === objects.length - 1 ? 0 : currentIndex + 1
+      }
+    }
+
+    canvas.value.setActiveObject(objects[nextIndex])
+    canvas.value.requestRenderAll()
+  }
+
   function subscribeCanvasEvents(): void {
     if (canvas.value) {
       canvas.value.on('selection:created', updateSelection)
@@ -405,12 +458,8 @@ export const useFabricStore = defineStore('fabric', () => {
       canvas.value.on('object:rotating', updateSelection)*/
 
       canvas.value.on('object:modified', emitUpdateEvent)
-
-      /*canvas.value.on('object:modified', () => { console.log('modified') })
-      canvas.value.on('object:added', () => { console.log('added') })
-      canvas.value.on('object:moving', () => { console.log('moving') })
-      canvas.value.on('object:scaling', () => { console.log('scaling') })
-      canvas.value.on('object:rotating', () => { console.log('rotating') })*/
+      canvas.value.on('object:added', emitUpdateEvent)
+      canvas.value.on('object:removed', emitUpdateEvent)
     }
   }
 
@@ -424,6 +473,10 @@ export const useFabricStore = defineStore('fabric', () => {
       canvas.value.off('object:moving', updateSelection)
       canvas.value.off('object:scaling', updateSelection)
       canvas.value.off('object:rotating', updateSelection)*/
+
+      canvas.value.off('object:modified', emitUpdateEvent)
+      canvas.value.off('object:added', emitUpdateEvent)
+      canvas.value.off('object:removed', emitUpdateEvent)
     }
   }
 
@@ -446,10 +499,12 @@ export const useFabricStore = defineStore('fabric', () => {
     addSVG,
     addImage,
     removeSelected,
-    moveObjects,
+    discardSelection,
+    changeObjectLayer,
     serialize,
     deserialize,
     copy,
     paste,
+    getNextFabricObject,
   }
 })
